@@ -1,0 +1,332 @@
+@import "tailwindcss";
+
+@theme {
+  --color-forest: #123b2a;
+  --color-forest-700: #174a35;
+  --color-forest-600: #1d5a40;
+  --color-brand: #16865b;
+  --color-brand-dark: #0f6b47;
+  --color-brand-soft: #4fa97a;
+  --color-mint: #b8e6ce;
+  --color-mint-soft: #e4f4ea;
+  --color-mint-deep: #8cc7a5;
+  --color-cream: #f7f9f5;
+  --color-charcoal: #202b25;
+  --color-sand: #edf1e8;
+  --color-line: #e3eadf;
+  --color-gold: #e0a526;
+
+  --font-sans: "IBM Plex Sans Arabic", "Tajawal", ui-sans-serif, system-ui,
+    -apple-system, "Segoe UI", sans-serif;
+  --font-display: "Tajawal", "IBM Plex Sans Arabic", ui-sans-serif, system-ui,
+    sans-serif;
+}
+
+:root {
+  color-scheme: light;
+}
+
+* {
+  border-color: var(--color-line);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background: var(--color-cream);
+  color: var(--color-charcoal);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow-x: hidden;
+}
+
+::selection {
+  background: var(--color-mint);
+  color: var(--color-forest);
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: #eef3ea;
+}
+::-webkit-scrollbar-thumb {
+  background: #c2d6c8;
+  border-radius: 999px;
+  border: 2px solid #eef3ea;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #9dbca8;
+}
+
+input,
+select,
+textarea,
+button {
+  font-family: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-brand);
+  outline-offset: 2px;
+}
+
+/* ---------- Surfaces ---------- */
+.glass {
+  background: rgba(255, 255, 255, 0.78);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+}
+
+.card-surface {
+  border-radius: 28px;
+  border: 1px solid rgba(227, 234, 223, 0.9);
+  background: #ffffff;
+  box-shadow: 0 22px 60px -42px rgba(18, 59, 42, 0.5);
+}
+
+.hero-pattern {
+  background-image: radial-gradient(
+    rgba(184, 230, 206, 0.22) 1px,
+    transparent 1px
+  );
+  background-size: 22px 22px;
+}
+
+.map-dots {
+  background-image: radial-gradient(
+    rgba(18, 59, 42, 0.09) 1px,
+    transparent 1px
+  );
+  background-size: 18px 18px;
+}
+
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* ---------- Motion ---------- */
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes float-soft {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-9px);
+  }
+}
+@keyframes scan-move {
+  0% {
+    top: 8%;
+    opacity: 0;
+  }
+  12% {
+    opacity: 1;
+  }
+  88% {
+    opacity: 1;
+  }
+  100% {
+    top: 92%;
+    opacity: 0;
+  }
+}
+@keyframes pulse-ring {
+  0% {
+    transform: scale(0.75);
+    opacity: 0.7;
+  }
+  80%,
+  100% {
+    transform: scale(1.8);
+    opacity: 0;
+  }
+}
+@keyframes grow-bar {
+  from {
+    transform: scaleY(0.04);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.animate-fade-up {
+  animation: fade-up 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.animate-fade-in {
+  animation: fade-in 0.35s ease both;
+}
+.animate-float {
+  animation: float-soft 6s ease-in-out infinite;
+}
+.animate-scan {
+  animation: scan-move 2.6s ease-in-out infinite;
+}
+.animate-grow-bar {
+  transform-origin: bottom;
+  animation: grow-bar 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* ---------- Map pins ---------- */
+.map-pin {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  transition:
+    transform 0.2s ease,
+    filter 0.2s ease;
+  z-index: 2;
+}
+.map-pin:hover {
+  transform: translate(-50%, -50%) scale(1.25);
+  z-index: 8;
+}
+.map-pin.is-active {
+  z-index: 10;
+  transform: translate(-50%, -50%) scale(1.25);
+}
+.map-pin .pin-label {
+  opacity: 0;
+  transform: translateY(2px);
+  transition: all 0.18s ease;
+  pointer-events: none;
+}
+.map-pin:hover .pin-label,
+.map-pin.is-active .pin-label,
+.map-pin:focus-visible .pin-label {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.pin-ring::after {
+  content: "";
+  position: absolute;
+  inset: -6px;
+  border-radius: 999px;
+  border: 2px solid currentColor;
+  animation: pulse-ring 2.4s ease-out infinite;
+}
+
+/* ---------- Print ---------- */
+@page {
+  size: A4;
+  margin: 8mm;
+}
+
+@media print {
+  html,
+  body {
+    background: #fff !important;
+    overflow: visible !important;
+    height: auto !important;
+  }
+  body * {
+    visibility: hidden;
+  }
+  #print-area,
+  #print-area * {
+    visibility: visible;
+  }
+
+  /* Neutralise every ancestor between the modal root and the sheet so
+     overflow, max-height, transforms, backdrop filters and flex sizing
+     cannot clip or offset the printable area. */
+  body :has(#print-area) {
+    position: static !important;
+    display: block !important;
+    overflow: visible !important;
+    max-height: none !important;
+    height: auto !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    transform: none !important;
+    filter: none !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    background: transparent !important;
+  }
+
+  #print-area {
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #fff !important;
+    box-shadow: none !important;
+  }
+  #print-area * {
+    box-shadow: none !important;
+  }
+  .print-label {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  .no-print {
+    display: none !important;
+  }
+}
+
+/* Rendered never on screen; used only for direct window.print() labels */
+.print-only {
+  display: none;
+}
+
+@media print {
+  .print-only {
+    display: block !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
