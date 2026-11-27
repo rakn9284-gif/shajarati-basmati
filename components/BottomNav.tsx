@@ -27,7 +27,7 @@ export default function BottomNav() {
   return (
     <nav
       aria-label="التنقل الرئيسي"
-      className="no-print fixed inset-x-0 bottom-0 z-40 mx-auto w-full max-w-md rounded-t-3xl border-t border-emerald-100 bg-white/95 px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 shadow-[0_-8px_30px_rgba(0,0,0,0.06)] backdrop-blur-md"
+      className="no-print fixed inset-x-0 bottom-0 z-40 mx-auto w-full max-w-lg rounded-t-3xl border-t border-emerald-100 bg-white/95 px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 shadow-[0_-8px_30px_rgba(0,0,0,0.06)] backdrop-blur-md"
     >
       <div className="grid grid-cols-5 items-end">
         {LINKS.slice(0, 2).map((item) => {

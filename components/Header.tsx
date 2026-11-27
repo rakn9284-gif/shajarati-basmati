@@ -8,7 +8,7 @@ import { Avatar } from "./ui";
 
 /** Mobile-first brand header used on the home dashboard and inner pages. */
 export default function Header() {
-  const { user, activities } = useApp();
+  const { lang, toggleLang, user, activities } = useApp();
   const [notificationsOpen, setNotificationsOpen] = useState(false);
 
   return (
@@ -28,6 +28,16 @@ export default function Header() {
       </Link>
 
       <div className="flex shrink-0 items-center gap-2">
+        <button
+          type="button"
+          onClick={toggleLang}
+          aria-label={lang === "ar" ? "Switch to English" : "التبديل إلى العربية"}
+          title={lang === "ar" ? "Switch to English" : "التبديل إلى العربية"}
+          className="rounded-full border border-emerald-100 bg-white/95 px-2.5 py-1.5 text-[10px] font-extrabold leading-none text-emerald-700 shadow-sm transition hover:border-emerald-300 hover:bg-emerald-50"
+        >
+          {lang === "ar" ? "EN" : "عربي"}
+        </button>
+
         <div className="relative">
           <button
             type="button"
