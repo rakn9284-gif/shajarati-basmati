@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Activity, Bell, Trees, UserRound } from "lucide-react";
+import { Activity, Bell, Sprout, UserRound } from "lucide-react";
 import { useApp } from "@/lib/store";
 import { Avatar } from "./ui";
 
@@ -14,8 +14,8 @@ export default function Header() {
   return (
     <header className="mb-4 flex items-center justify-between gap-3">
       <Link href="/" className="flex min-w-0 items-center gap-2.5" aria-label="حملتي — الرئيسية">
-        <span className="grid size-11 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-emerald-800 to-emerald-600 text-white shadow-lg shadow-emerald-900/20">
-          <Trees className="size-6" strokeWidth={1.9} />
+        <span className="grid size-11 shrink-0 place-items-center rounded-2xl border border-emerald-100 bg-white/95 text-emerald-600 shadow-sm">
+          <Sprout className="size-6" strokeWidth={2.2} />
         </span>
         <span className="min-w-0 leading-tight">
           <span className="block truncate text-lg font-extrabold tracking-tight text-emerald-950">

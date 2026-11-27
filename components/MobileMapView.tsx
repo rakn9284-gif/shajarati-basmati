@@ -73,18 +73,12 @@ export default function MobileMapView() {
     ? trees.filter((tree) => tree.campaignId === selected.id).length ||
       selected.planted
     : 0;
-  const hectares = selected?.areaSqm
-    ? (selected.areaSqm / 10_000).toFixed(2)
-    : "—";
 
   return (
     <div className="relative h-[calc(100vh-5rem)] min-h-[520px] overflow-hidden rounded-3xl border border-emerald-100 bg-emerald-50 shadow-sm">
       <LeafletMap
-        municipalities={municipalities}
         trees={visibleTrees}
         campaigns={visibleCampaigns}
-        activeMunicipality={activeMunicipality}
-        onSelectMunicipality={(id) => setActiveMunicipality(id)}
         onSelectTree={(treeId) => openModal({ type: "passport", treeId })}
         onSelectCampaign={(campaignId) => setSelectedCampaignId(campaignId)}
       />
@@ -152,19 +146,11 @@ export default function MobileMapView() {
             </button>
           </div>
 
-          <div className="mt-3 grid grid-cols-2 gap-2">
-            <div className="rounded-2xl bg-emerald-50/70 px-3 py-2">
-              <p className="text-[9px] text-emerald-950/45">عدد الأشجار</p>
-              <p className="text-[13px] font-extrabold text-emerald-800">
-                {selectedTreeCount}
-              </p>
-            </div>
-            <div className="rounded-2xl bg-amber-50 px-3 py-2">
-              <p className="text-[9px] text-amber-800/60">المساحة</p>
-              <p className="text-[13px] font-extrabold text-amber-800">
-                {hectares} هكتار
-              </p>
-            </div>
+          <div className="mt-3 rounded-2xl bg-emerald-50/70 px-3 py-2">
+            <p className="text-[9px] text-emerald-950/45">عدد الأشجار</p>
+            <p className="text-[13px] font-extrabold text-emerald-800">
+              {selectedTreeCount}
+            </p>
           </div>
 
           <div className="mt-3 flex gap-2">

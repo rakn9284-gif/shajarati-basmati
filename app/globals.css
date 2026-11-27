@@ -253,6 +253,29 @@ button {
   animation: pulse-ring 2.4s ease-out infinite;
 }
 
+/* ---------- Campaign location pins ---------- */
+.hamalati-pin {
+  background: transparent;
+  border: 0;
+}
+
+.hamalati-pin__marker {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 3px solid #ffffff;
+  border-radius: 50% 50% 50% 4px;
+  background: linear-gradient(145deg, #059669, #064e3b);
+  box-shadow: 0 8px 20px -6px rgba(6, 78, 59, 0.55);
+  color: #ffffff;
+  transform: rotate(-45deg);
+}
+
+.hamalati-pin__marker svg {
+  transform: rotate(45deg);
+}
+
 /* ---------- Print ---------- */
 @page {
   size: A4;
