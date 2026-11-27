@@ -1,22 +1,10 @@
 "use client";
 
-import { useEffect } from "react";
-import {
-  AlertCircle,
-  CheckCircle2,
-  Info,
-  Sprout,
-} from "lucide-react";
+import { useEffect, useRef } from "react";
+import { AlertCircle, CheckCircle2, Info, Sprout } from "lucide-react";
 import { useApp } from "@/lib/store";
+import type { ModalState } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import Header from "./Header";
-import Footer from "./Footer";
-import Dashboard from "./Dashboard";
-import Municipalities from "./Municipalities";
-import Reports from "./Reports";
-import Magazine, { ComposePost, PostModal } from "./Magazine";
-import UserManagement from "./UserManagement";
-import Profile from "./Profile";
 import AuthModal from "./AuthModal";
 import TreePassport from "./TreePassport";
 import CampaignSite from "./CampaignSite";
@@ -24,25 +12,24 @@ import QRScanner from "./QRScanner";
 import GridSystem from "./GridSystem";
 import TreeForm from "./TreeForm";
 import PrintQR from "./PrintQR";
+import { ComposePost, PostModal } from "./Magazine";
 
 /* ------------------------------------------------------------------ */
-/* Branded splash shown while local state hydrates                     */
+/* Branded splash while local state hydrates                            */
 /* ------------------------------------------------------------------ */
 
 function Splash() {
   return (
-    <div className="fixed inset-0 z-[200] grid place-items-center bg-cream">
+    <div className="fixed inset-0 z-[200] grid place-items-center bg-gradient-to-b from-emerald-50 via-white to-emerald-50">
       <div className="flex flex-col items-center gap-5 animate-fade-in">
-        <span className="relative grid size-16 place-items-center rounded-[22px] bg-forest text-mint shadow-[0_24px_60px_-24px_rgba(18,59,42,0.85)]">
+        <span className="relative grid size-16 place-items-center rounded-[22px] bg-gradient-to-br from-emerald-800 to-emerald-600 text-white shadow-[0_24px_60px_-24px_rgba(6,78,59,0.85)]">
           <Sprout className="size-9" strokeWidth={1.8} />
-          <span className="absolute -bottom-1 -end-1 size-4 rounded-full border-[3px] border-cream bg-brand" />
-          <span className="absolute inset-0 rounded-[22px] ring-2 ring-brand/30 animate-ping" />
+          <span className="absolute -bottom-1 -end-1 size-4 rounded-full border-[3px] border-white bg-amber-400" />
+          <span className="absolute inset-0 rounded-[22px] ring-2 ring-emerald-500/30 animate-ping" />
         </span>
         <div className="text-center">
-          <p className="font-display text-lg font-extrabold text-forest">
-            حملتي
-          </p>
-          <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.24em] text-charcoal/35">
+          <p className="text-lg font-extrabold text-emerald-950">حملتي</p>
+          <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.24em] text-emerald-700/40">
             HAMALATI
           </p>
         </div>
@@ -50,13 +37,13 @@ function Splash() {
           {[0, 1, 2].map((i) => (
             <span
               key={i}
-              className="size-1.5 rounded-full bg-brand/70 animate-bounce"
+              className="size-1.5 rounded-full bg-emerald-600/70 animate-bounce"
               style={{ animationDelay: `${i * 120}ms` }}
             />
           ))}
         </div>
-        <p className="max-w-[260px] text-center text-[10.5px] leading-relaxed text-charcoal/40">
-          نُدير حملات التشجير الجماعية ونوثّق مواقع الغرس حتى تنمو
+        <p className="max-w-[260px] text-center text-[10.5px] leading-relaxed text-emerald-950/40">
+          نُدير حملات التشجير ونوثّق مواقع الغرس حتى تنمو
         </p>
       </div>
     </div>
@@ -70,21 +57,21 @@ function Splash() {
 const TOAST_STYLES = {
   success: {
     icon: CheckCircle2,
-    wrap: "border-brand/25 bg-white",
-    iconWrap: "bg-mint-soft text-brand",
-    bar: "bg-brand",
+    wrap: "border-emerald-100 bg-white",
+    iconWrap: "bg-emerald-50 text-emerald-700",
+    bar: "bg-emerald-600",
   },
   error: {
     icon: AlertCircle,
-    wrap: "border-[#B03636]/25 bg-white",
-    iconWrap: "bg-[#FBE7E7] text-[#B03636]",
-    bar: "bg-[#B03636]",
+    wrap: "border-red-200 bg-white",
+    iconWrap: "bg-red-50 text-red-600",
+    bar: "bg-red-600",
   },
   info: {
     icon: Info,
-    wrap: "border-[#8A6516]/25 bg-white",
-    iconWrap: "bg-[#FBF2DC] text-[#8A6516]",
-    bar: "bg-gold",
+    wrap: "border-amber-200 bg-white",
+    iconWrap: "bg-amber-50 text-amber-700",
+    bar: "bg-amber-500",
   },
 } as const;
 
@@ -98,11 +85,11 @@ function ToastLayer() {
       key={toast.id}
       role="status"
       aria-live="polite"
-      className="no-print pointer-events-none fixed inset-x-0 bottom-5 z-[150] flex justify-center px-4"
+      className="no-print pointer-events-none fixed inset-x-0 bottom-24 z-[150] flex justify-center px-4"
     >
       <div
         className={cn(
-          "pointer-events-auto flex w-full max-w-md items-start gap-3 overflow-hidden rounded-2xl border p-3 shadow-[0_28px_70px_-30px_rgba(18,59,42,0.55)] animate-fade-up",
+          "pointer-events-auto flex w-full max-w-md items-start gap-3 overflow-hidden rounded-2xl border p-3 shadow-[0_28px_70px_-30px_rgba(6,78,59,0.55)] animate-fade-up",
           style.wrap,
         )}
       >
@@ -115,10 +102,10 @@ function ToastLayer() {
           <Icon className="size-4.5" />
         </span>
         <div className="min-w-0 flex-1 pt-0.5">
-          <p className="text-[12.5px] font-medium leading-snug text-charcoal/80">
+          <p className="text-[12.5px] font-medium leading-snug text-emerald-950/80">
             {toast.message}
           </p>
-          <p className="mt-0.5 text-[9.5px] font-semibold uppercase tracking-wide text-charcoal/35">
+          <p className="mt-0.5 text-[9.5px] font-semibold uppercase tracking-wide text-emerald-950/35">
             {t("حملتي", "Hamalati")}
           </p>
         </div>
@@ -126,35 +113,6 @@ function ToastLayer() {
       </div>
     </div>
   );
-}
-
-/* ------------------------------------------------------------------ */
-/* View switch                                                         */
-/* ------------------------------------------------------------------ */
-
-function ViewRouter() {
-  const { view, user, isAdmin, isStateAdmin } = useApp();
-
-  // Hard RBAC guard in case state was restored from storage
-  if (view === "users" && !isStateAdmin) return <Magazine />;
-  if (view === "profile" && !user) return <Magazine />;
-  if (view === "reports" && !isAdmin) return <Dashboard />;
-
-  switch (view) {
-    case "municipalities":
-      return <Municipalities />;
-    case "reports":
-      return <Reports />;
-    case "magazine":
-      return <Magazine />;
-    case "users":
-      return <UserManagement />;
-    case "profile":
-      return <Profile />;
-    case "dashboard":
-    default:
-      return <Dashboard />;
-  }
 }
 
 /* ------------------------------------------------------------------ */
@@ -167,9 +125,7 @@ function ModalRouter() {
 
   switch (modal.type) {
     case "auth":
-      return (
-        <AuthModal key={`auth-${modal.mode}`} initialMode={modal.mode} />
-      );
+      return <AuthModal key={`auth-${modal.mode}`} initialMode={modal.mode} />;
     case "passport":
       return <TreePassport key={modal.treeId} treeId={modal.treeId} />;
     case "site":
@@ -205,32 +161,40 @@ function ModalRouter() {
 /* Shell                                                               */
 /* ------------------------------------------------------------------ */
 
-export default function AppShell() {
-  const { hydrated, view, toast } = useApp();
+export default function AppShell({
+  children,
+  initialModal,
+}: {
+  children: React.ReactNode;
+  initialModal?: ModalState;
+}) {
+  const { hydrated, toast, openModal } = useApp();
+  const launchedModal = useRef<string | null>(null);
 
-  // Lock body scroll while the splash is visible.
   useEffect(() => {
     if (hydrated) return;
-    const prev = document.body.style.overflow;
+    const previous = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => {
-      document.body.style.overflow = prev;
+      document.body.style.overflow = previous;
     };
   }, [hydrated]);
+
+  useEffect(() => {
+    if (!hydrated || !initialModal) return;
+    const key = JSON.stringify(initialModal);
+    if (launchedModal.current === key) return;
+    launchedModal.current = key;
+    openModal(initialModal);
+  }, [hydrated, initialModal, openModal]);
 
   if (!hydrated) return <Splash />;
 
   return (
-    <div className="flex min-h-dvh flex-col bg-cream">
-      <Header />
-
-      <main className="mx-auto w-full max-w-[1440px] flex-1 px-3 py-4 sm:px-6 sm:py-6 lg:px-8">
-        <div key={view} className="animate-fade-up">
-          <ViewRouter />
-        </div>
+    <div className="flex min-h-dvh flex-col">
+      <main className="mx-auto w-full max-w-md flex-1 px-4 pb-28 pt-4 sm:max-w-2xl sm:px-6 sm:pt-6">
+        <div className="animate-fade-up">{children}</div>
       </main>
-
-      <Footer />
 
       <ModalRouter />
       {toast && <ToastLayer />}

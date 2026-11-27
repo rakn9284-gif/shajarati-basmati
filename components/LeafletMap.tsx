@@ -116,10 +116,10 @@ export default function LeafletMap({
               key={`site-${campaign.id}`}
               positions={campaign.polygon}
               pathOptions={{
-                color: "#123B2A",
-                weight: 2,
-                fillColor: "#16865B",
-                fillOpacity: 0.28,
+                color: "#064e3b",
+                weight: 2.5,
+                fillColor: "#059669",
+                fillOpacity: 0.35,
               }}
               eventHandlers={{
                 click: (event) => {
@@ -142,7 +142,7 @@ export default function LeafletMap({
             pathOptions={{
               color: "#FFFFFF",
               weight: 2,
-              fillColor: "#123B2A",
+              fillColor: "#059669",
               fillOpacity: 0.9,
             }}
             eventHandlers={{

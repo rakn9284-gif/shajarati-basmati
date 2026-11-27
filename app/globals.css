@@ -16,9 +16,9 @@
   --color-line: #e3eadf;
   --color-gold: #e0a526;
 
-  --font-sans: "IBM Plex Sans Arabic", "Tajawal", ui-sans-serif, system-ui,
+  --font-sans: var(--font-cairo), "Cairo", ui-sans-serif, system-ui,
     -apple-system, "Segoe UI", sans-serif;
-  --font-display: "Tajawal", "IBM Plex Sans Arabic", ui-sans-serif, system-ui,
+  --font-display: var(--font-cairo), "Cairo", ui-sans-serif, system-ui,
     sans-serif;
 }
 
@@ -36,7 +36,13 @@ html {
 
 body {
   margin: 0;
-  background: var(--color-cream);
+  background: linear-gradient(
+    to bottom,
+    rgb(236 253 245 / 0.6) 0%,
+    #ffffff 50%,
+    rgb(236 253 245 / 0.3) 100%
+  );
+  background-attachment: fixed;
   color: var(--color-charcoal);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;

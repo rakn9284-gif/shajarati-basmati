@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import {
   ArrowUpRight,
   CalendarDays,
@@ -706,7 +707,6 @@ export default function Magazine() {
     likedPosts,
     likePost,
     openModal,
-    setView,
     canManagePost,
   } = useApp();
   const [category, setCategory] = useState<(typeof CATEGORIES)[number]["id"]>(
@@ -1063,13 +1063,13 @@ export default function Magazine() {
             "Hamalati magazine · community content from Skikda Wilaya",
           )}
         </span>
-        <button
-          onClick={() => setView("dashboard")}
+        <Link
+          href="/"
           className="flex items-center gap-1 font-semibold text-brand hover:underline"
         >
           {t("العودة إلى الرئيسية", "Back to home")}
           <ArrowUpRight className="size-3" />
-        </button>
+        </Link>
       </div>
     </div>
   );

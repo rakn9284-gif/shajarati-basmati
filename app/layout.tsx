@@ -1,6 +1,15 @@
 import type { Metadata, Viewport } from "next";
+import { Cairo } from "next/font/google";
 import "./globals.css";
 import { AppProvider } from "@/lib/store";
+import BottomNav from "@/components/BottomNav";
+
+const cairo = Cairo({
+  subsets: ["arabic", "latin"],
+  weight: ["400", "600", "700", "800"],
+  variable: "--font-cairo",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: {
@@ -8,7 +17,7 @@ export const metadata: Metadata = {
     template: "%s | حملتي",
   },
   description:
-    "منصة رقمية لإدارة وتوثيق حملات التشجير الجماعية ومواقع الغرس في ولاية سكيكدة: حدود الموقع على الخريطة، رمز QR واحد لكل حملة، إحصائيات الأشجار والأنواع، ومجلة مجتمعية.",
+    "منصة رقمية موحدة لإدارة حملات التشجير ومواقع الغرس في ولاية سكيكدة: حدود المواقع على الخريطة، رمز QR واحد لكل حملة، وإحصائيات الأشجار والمتطوعين.",
   keywords: [
     "حملتي",
     "HAMALATI",
@@ -32,30 +41,22 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#123B2A",
+  themeColor: "#022c22",
   width: "device-width",
   initialScale: 1,
+  viewportFit: "cover",
 };
 
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="ar" dir="rtl" suppressHydrationWarning>
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link
-          rel="preconnect"
-          href="https://fonts.gstatic.com"
-          crossOrigin="anonymous"
-        />
-        <link
-          href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=Tajawal:wght@300;400;500;700;800;900&display=swap"
-          rel="stylesheet"
-        />
-      </head>
-      <body>
-        <AppProvider>{children}</AppProvider>
+    <html lang="ar" dir="rtl" className={cairo.variable} suppressHydrationWarning>
+      <body className="min-h-dvh bg-gradient-to-b from-emerald-50/60 via-white to-emerald-50/30 font-sans text-emerald-950 antialiased">
+        <AppProvider>
+          {children}
+          <BottomNav />
+        </AppProvider>
       </body>
     </html>
   );
