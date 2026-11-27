@@ -1,74 +1,41 @@
 "use client";
 
-import { useMemo } from "react";
-import {
-  CircleMarker,
-  GeoJSON,
-  MapContainer,
-  Polygon,
-  TileLayer,
-  Tooltip,
-} from "react-leaflet";
+import { CircleMarker, MapContainer, Marker, TileLayer, Tooltip } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import communes from "@/lib/skikda-communes.json";
 import type { Campaign, Municipality, Tree, TreeStatus } from "@/lib/types";
 import { STATUS_COLORS } from "@/lib/municipalities";
 
 const SKIKDA_CENTER: [number, number] = [36.876, 6.906];
 
-const UNPLANTED_STYLE: L.PathOptions = {
-  color: "#8CB8A2",
-  weight: 1.2,
-  fillColor: "#FFFFFF",
-  fillOpacity: 0.55,
-  dashArray: "4 3",
-};
-
-const PLANTED_STYLE: L.PathOptions = {
-  color: "#16865B",
-  weight: 1.6,
-  fillColor: "#B8E6CE",
-  fillOpacity: 0.45,
-};
-
-const ACTIVE_STYLE: L.PathOptions = {
-  color: "#123B2A",
-  weight: 2.6,
-  fillColor: "#16865B",
-  fillOpacity: 0.6,
-};
+const campaignPin = L.divIcon({
+  className: "hamalati-pin",
+  html: `<div class="hamalati-pin__marker"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21v-6"/><path d="M12 15c-4 0-7-3-7-7 4 0 7 3 7 7Z"/><path d="M12 15c4 0 7-3 7-7-4 0-7 3-7 7Z"/></svg></div>`,
+  iconSize: [36, 42],
+  iconAnchor: [18, 42],
+  tooltipAnchor: [0, -36],
+});
 
 const statusColor = (status: TreeStatus) => STATUS_COLORS[status];
 
 export interface LeafletMapProps {
+  /** Kept for API compatibility; boundaries are no longer drawn. */
   municipalities?: Municipality[];
   trees: Tree[];
   campaigns?: Campaign[];
-  activeMunicipality: string | null;
-  onSelectMunicipality: (id: string | null) => void;
+  activeMunicipality?: string | null;
+  onSelectMunicipality?: (id: string | null) => void;
   onSelectTree: (treeId: string) => void;
   onSelectCampaign?: (campaignId: string) => void;
 }
 
-/**
- * Real interactive map of Skikda Wilaya built on Leaflet + OpenStreetMap.
- * Commune polygons come from geoBoundaries DZA-ADM3 (simplified);
- * tree pins are plotted live from their admin-entered geo-coordinates.
- */
+/** Clean marker-only map of Skikda Wilaya — no polygons or boundary editing. */
 export default function LeafletMap({
   trees,
   campaigns = [],
-  activeMunicipality,
-  onSelectMunicipality,
   onSelectTree,
   onSelectCampaign,
 }: LeafletMapProps) {
-  const plantedIds = useMemo(
-    () => new Set(trees.map((tr) => tr.municipalityId)),
-    [trees],
-  );
-
   return (
     <MapContainer
       center={SKIKDA_CENTER}
@@ -82,93 +49,37 @@ export default function LeafletMap({
         maxZoom={19}
       />
 
-      {(communes as never as GeoJSON.FeatureCollection).features.map(
-        (feature) => {
-          const id = (feature.properties as { id?: string }).id;
-          if (!id) return null;
-          const isActive = id === activeMunicipality;
-          const planted = plantedIds.has(id);
-          const style = isActive
-            ? ACTIVE_STYLE
-            : planted
-              ? PLANTED_STYLE
-              : UNPLANTED_STYLE;
-          return (
-            <GeoJSON
-              key={`${id}-${planted ? 1 : 0}-${isActive ? 1 : 0}`}
-              data={feature as never}
-              pathOptions={style}
-              eventHandlers={{
-                click: () => onSelectMunicipality(id),
-              }}
-            />
-          );
-        },
-      )}
-
-      {/* Campaign site boundaries — translucent green; click opens the site card. */}
-      {campaigns.map((campaign) => {
-        const label = `${campaign.nameAr} / ${campaign.nameEn}`;
-        const open = () => onSelectCampaign?.(campaign.id);
-        if (campaign.polygon && campaign.polygon.length >= 3) {
-          return (
-            <Polygon
-              key={`site-${campaign.id}`}
-              positions={campaign.polygon}
-              pathOptions={{
-                color: "#064e3b",
-                weight: 2.5,
-                fillColor: "#059669",
-                fillOpacity: 0.35,
-              }}
-              eventHandlers={{
-                click: (event) => {
-                  event.originalEvent.stopPropagation();
-                  open();
-                },
-              }}
-            >
-              <Tooltip direction="top" opacity={0.95}>
-                <span className="text-[10px] font-bold">{label}</span>
-              </Tooltip>
-            </Polygon>
-          );
-        }
-        return (
-          <CircleMarker
-            key={`site-${campaign.id}`}
-            center={[campaign.lat, campaign.lng]}
-            radius={9}
-            pathOptions={{
-              color: "#FFFFFF",
-              weight: 2,
-              fillColor: "#059669",
-              fillOpacity: 0.9,
-            }}
-            eventHandlers={{
-              click: (event) => {
-                event.originalEvent.stopPropagation();
-                open();
-              },
-            }}
-          >
-            <Tooltip direction="top" opacity={0.95}>
-              <span className="text-[10px] font-bold">{label}</span>
-            </Tooltip>
-          </CircleMarker>
-        );
-      })}
+      {/* Campaign sites as emerald location pins only. */}
+      {campaigns.map((campaign) => (
+        <Marker
+          key={`site-${campaign.id}`}
+          position={[campaign.lat, campaign.lng]}
+          icon={campaignPin}
+          eventHandlers={{
+            click: (event) => {
+              event.originalEvent.stopPropagation();
+              onSelectCampaign?.(campaign.id);
+            },
+          }}
+        >
+          <Tooltip direction="top" opacity={0.95}>
+            <span className="text-[10px] font-bold">
+              {campaign.nameAr} / {campaign.nameEn}
+            </span>
+          </Tooltip>
+        </Marker>
+      ))}
 
       {trees.map((tree) => (
         <CircleMarker
           key={tree.id}
           center={[tree.lat, tree.lng]}
-          radius={tree.status === "critical" ? 8 : 6}
+          radius={tree.status === "critical" ? 7 : 5}
           pathOptions={{
             color: "#FFFFFF",
-            weight: 2,
+            weight: 1.5,
             fillColor: statusColor(tree.status),
-            fillOpacity: 0.95,
+            fillOpacity: 0.9,
           }}
           eventHandlers={{
             click: () => onSelectTree(tree.id),

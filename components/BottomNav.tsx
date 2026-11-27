@@ -63,18 +63,18 @@ export default function BottomNav() {
         })}
 
         {/* زر المسح العائم في المنتصف */}
-        <div className="relative -top-6 flex flex-col items-center">
+        <div className="relative flex flex-col items-center">
           <Link
             href="/scan"
             aria-label="مسح كو آر"
             className={cn(
-              "grid size-16 place-items-center rounded-full bg-gradient-to-tr from-emerald-800 to-emerald-600 text-white shadow-lg ring-4 ring-white outline outline-2 outline-amber-400 transition active:scale-95",
+              "relative -top-6 grid size-16 place-items-center rounded-full bg-gradient-to-tr from-emerald-800 to-emerald-600 text-white shadow-lg ring-4 ring-white outline outline-2 outline-amber-400 transition active:scale-95",
               pathname === "/scan" && "from-emerald-950 to-emerald-700",
             )}
           >
             <QrCode className="size-7" strokeWidth={2} />
           </Link>
-          <span className="mt-1.5 rounded-full bg-emerald-950 px-2.5 py-0.5 text-[9px] font-bold leading-tight text-white shadow-sm">
+          <span className="-mt-5 text-[11px] font-bold leading-tight text-emerald-950">
             مسح كو آر
           </span>
         </div>
