@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import {
   ArrowDownRight,
   ArrowUpRight,
@@ -49,7 +50,6 @@ export default function Reports() {
     trees,
     municipalities,
     notify,
-    setView,
     setActiveMunicipality,
   } = useApp();
 
@@ -582,13 +582,13 @@ export default function Reports() {
                 {t("البلديات الرائدة", "Leading municipalities")}
               </h2>
             </div>
-            <button
-              onClick={() => setView("municipalities")}
+            <Link
+              href="/admin/municipalities"
               className="no-print inline-flex items-center gap-1 text-[10px] font-semibold text-brand hover:underline"
             >
               {t("الدليل الكامل", "Full directory")}
               <ArrowUpRight className="size-3" />
-            </button>
+            </Link>
           </div>
 
           <div className="mt-4 space-y-3">
@@ -596,12 +596,10 @@ export default function Reports() {
               const meta = STATUS_META[m.status];
               const aliveRate = Math.round((m.alive / m.trees) * 100);
               return (
-                <button
+                <Link
                   key={m.id}
-                  onClick={() => {
-                    setActiveMunicipality(m.id);
-                    setView("municipalities");
-                  }}
+                  href="/admin/municipalities"
+                  onClick={() => setActiveMunicipality(m.id)}
                   className="flex w-full items-center gap-2.5 rounded-2xl p-1.5 text-start transition hover:bg-cream/70"
                 >
                   <span
@@ -631,7 +629,7 @@ export default function Reports() {
                     </div>
                   </div>
                   <StatusPill status={m.status} lang={lang} />
-                </button>
+                </Link>
               );
             })}
           </div>

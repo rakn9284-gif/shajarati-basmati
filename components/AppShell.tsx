@@ -192,7 +192,7 @@ export default function AppShell({
 
   return (
     <div className="flex min-h-dvh flex-col">
-      <main className="mx-auto w-full max-w-md flex-1 px-4 pb-28 pt-4 sm:max-w-2xl sm:px-6 sm:pt-6">
+      <main className="mx-auto w-full max-w-lg flex-1 px-4 pb-32 pt-4 sm:px-6 sm:pt-6">
         <div className="animate-fade-up">{children}</div>
       </main>
 
