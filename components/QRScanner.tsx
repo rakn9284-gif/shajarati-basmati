@@ -6,6 +6,7 @@ import {
   CameraOff,
   CheckCircle2,
   Clock,
+  MapPin,
   QrCode,
   ScanLine,
   Search,
@@ -13,15 +14,37 @@ import {
 } from "lucide-react";
 import { useApp } from "@/lib/store";
 import { municipalityName } from "@/lib/municipalities";
-import { Modal, StatusPill } from "./ui";
+import { formatDate } from "@/lib/utils";
+import { Badge, Modal } from "./ui";
+import type { Campaign } from "@/lib/types";
 import jsQR from "jsqr";
 
 type BarcodeDetectorLike = {
   detect: (source: HTMLVideoElement) => Promise<{ rawValue: string }[]>;
 };
 
+/** Accepts plain campaign IDs as well as scanned URLs containing ?campaign=. */
+function campaignCodeOf(raw: string) {
+  const trimmed = raw.trim();
+  try {
+    const url = new URL(
+      trimmed,
+      typeof window !== "undefined" ? window.location.origin : "https://hamalati.dz",
+    );
+    const fromQuery = url.searchParams.get("campaign");
+    if (fromQuery) return fromQuery.trim().toUpperCase();
+  } catch {
+    // Not a URL — treat the input as a plain campaign code.
+  }
+  return trimmed.toUpperCase();
+}
+
+const statusTone = (status: Campaign["status"]) =>
+  status === "active" ? "mint" : status === "completed" ? "forest" : "amber";
+
+/** Scans (or accepts manual entry of) the single QR code of a campaign site. */
 export default function QRScanner() {
-  const { t, lang, findTree, closeModal, openModal } = useApp();
+  const { t, lang, campaigns, findCampaign, closeModal, openModal } = useApp();
   const [code, setCode] = useState("");
   const [error, setError] = useState("");
   const [recent, setRecent] = useState<string[]>([]);
@@ -35,25 +58,33 @@ export default function QRScanner() {
   // محرك الكشف الفعّال: "native" = BarcodeDetector، "compat" = jsQR البديل
   const [engine, setEngine] = useState<"native" | "compat" | null>(null);
 
-  const openTree = useCallback(
-    (id: string) => {
-      const normalized = id.trim().toUpperCase();
-      const tree = findTree(normalized);
-      if (!tree) {
+  const openSite = useCallback(
+    (raw: string) => {
+      const normalized = campaignCodeOf(raw);
+      if (!normalized) {
+        setError(t("أدخل رمز الحملة أولاً.", "Enter a campaign code first."));
+        return false;
+      }
+      const campaign =
+        findCampaign(normalized) ??
+        campaigns.find((c) => c.id.toUpperCase() === normalized);
+      if (!campaign) {
         setError(
           t(
-            "لم نجد شجرة بهذا الرمز. تأكد من الرقم ثم أعد المحاولة.",
-            "No tree found with this code. Check the ID and try again.",
+            "لم نجد موقعاً بهذا الرمز. تأكد من رمز الحملة ثم أعد المحاولة.",
+            "No site found with this code. Check the campaign code and try again.",
           ),
         );
         return false;
       }
-      setRecent((prev) => [normalized, ...prev.filter((x) => x !== normalized)].slice(0, 3));
+      setRecent((prev) =>
+        [campaign.id, ...prev.filter((x) => x !== campaign.id)].slice(0, 3),
+      );
       setError("");
-      openModal({ type: "passport", treeId: normalized });
+      openModal({ type: "site", campaignId: campaign.id });
       return true;
     },
-    [findTree, openModal, t],
+    [campaigns, findCampaign, openModal, t],
   );
 
   const stopCamera = useCallback(() => {
@@ -109,7 +140,6 @@ export default function QRScanner() {
           await videoRef.current.play().catch(() => undefined);
         }
 
-        // إتاحة الكشف عبر BarcodeDetector إذا كان مدعوماً
         const Ctor = (
           window as unknown as {
             BarcodeDetector?: new (opts?: { formats?: string[] }) => BarcodeDetectorLike;
@@ -126,24 +156,19 @@ export default function QRScanner() {
               if (results.length > 0) {
                 const value = results[0].rawValue;
                 setDetectedLabel(value.slice(0, 40));
-                const opened = openTree(value);
-                if (opened) {
-                  stopCamera();
-                }
+                if (openSite(value)) stopCamera();
               }
             } catch {
               // تتجاهل الأخطاء المؤقتة أثناء المسح
             }
           }, 300);
         } else {
-          /* محرك التوافق: معالجة إطارات الفيديو مباشرة عبر jsQR.
-             لا نعرض أي تحذير — الكاميرا نشطة والمسح يعمل فعلياً. */
+          /* محرك التوافق: معالجة إطارات الفيديو مباشرة عبر jsQR. */
           setEngine("compat");
           const captureCode = () => {
             const video = videoRef.current;
             const canvas = canvasRef.current;
             if (!video || !canvas || video.readyState < 2 || !video.videoWidth) return;
-            // تصغير الإطار لتخفيف الحمل على المعالج مع الحفاظ على وضوح الرمز
             const scale = Math.min(1, 640 / video.videoWidth);
             canvas.width = Math.round(video.videoWidth * scale);
             canvas.height = Math.round(video.videoHeight * scale);
@@ -156,7 +181,7 @@ export default function QRScanner() {
             });
             if (result?.data) {
               setDetectedLabel(result.data.slice(0, 40));
-              if (openTree(result.data)) stopCamera();
+              if (openSite(result.data)) stopCamera();
             }
           };
           loopRef.current = window.setInterval(captureCode, 280);
@@ -177,36 +202,36 @@ export default function QRScanner() {
     return () => {
       cancelled = true;
     };
-  }, [cameraOn, openTree, stopCamera, t]);
+  }, [cameraOn, openSite, stopCamera, t]);
 
   useEffect(() => {
     return () => {
       if (loopRef.current) window.clearInterval(loopRef.current);
-      if (streamRef.current) streamRef.current.getTracks().forEach((track) => track.stop());
+      if (streamRef.current)
+        streamRef.current.getTracks().forEach((track) => track.stop());
     };
   }, []);
 
   const search = () => {
-    const normalized = code.trim().toUpperCase();
-    if (!normalized) {
-      setError(t("أدخل رقم الشجرة أولاً.", "Enter a tree ID first."));
+    if (!code.trim()) {
+      setError(t("أدخل رمز الحملة أولاً.", "Enter a campaign code first."));
       return;
     }
-    openTree(normalized);
+    openSite(code);
   };
 
-  const recentTrees = recent
-    .map((id) => findTree(id))
-    .filter((tree): tree is NonNullable<typeof tree> => !!tree);
+  const recentCampaigns = recent
+    .map((id) => findCampaign(id))
+    .filter((c): c is NonNullable<typeof c> => !!c);
 
   return (
     <Modal
       open
       onClose={closeModal}
-      title={t("مسح جواز الشجرة", "Scan a tree passport")}
+      title={t("مسح رمز موقع التشجير", "Scan a planting site QR")}
       subtitle={t(
-        "وجّه الكاميرا نحو رمز QR المطبوع على الشجرة، أو أدخل رقمها يدوياً عند تلف الرمز.",
-        "Point the camera at the tree's printed QR code, or enter its ID manually if the code is damaged.",
+        "وجّه الكاميرا نحو رمز الحملة المطبوع في الموقع، أو أدخل رمزها يدوياً لفتح بطاقة الموقع.",
+        "Point the camera at the campaign sign, or enter its code manually to open the site card.",
       )}
       icon={<ScanLine className="size-5" />}
       size="md"
@@ -252,7 +277,7 @@ export default function QRScanner() {
           <div className="relative mt-3 flex flex-wrap items-center justify-center gap-2 text-[9.5px] text-mint/70">
             <Camera className="size-3.5" />
             {cameraOn
-              ? t("الكاميرا نشطة — ضع الرمز داخل الإطار", "Camera active — place the code inside the frame")
+              ? t("الكاميرا نشطة — ضع رمز الحملة داخل الإطار", "Camera active — place the campaign code inside the frame")
               : t("الكاميرا متوقفة", "Camera off")}
             {cameraOn && (
               <>
@@ -300,28 +325,28 @@ export default function QRScanner() {
         {/* Manual entry */}
         <div>
           <label
-            htmlFor="tree-code"
+            htmlFor="campaign-code"
             className="mb-1.5 flex items-center justify-between text-[11px] font-semibold text-charcoal/65"
           >
-            <span>{t("رقم الشجرة", "Tree ID")}</span>
+            <span>{t("رمز الحملة", "Campaign code")}</span>
             <span className="text-[9px] font-medium text-charcoal/35">
-              {t("الاحتياط عند تلف الرمز", "Fallback for a damaged code")}
+              {t("أو الصق رابط الرمز", "or paste the QR link")}
             </span>
           </label>
           <div className="flex gap-2">
             <div className="relative flex-1">
               <Search className="absolute start-3 top-1/2 size-4 -translate-y-1/2 text-charcoal/30" />
               <input
-                id="tree-code"
+                id="campaign-code"
                 value={code}
                 onChange={(e) => {
-                  setCode(e.target.value.toUpperCase());
+                  setCode(e.target.value);
                   setError("");
                 }}
                 onKeyDown={(e) => {
                   if (e.key === "Enter") search();
                 }}
-                placeholder="SKK-COL-043"
+                placeholder="CMP-SKK-001"
                 dir="ltr"
                 className="w-full rounded-2xl border border-line bg-white py-2.5 pe-3 ps-10 text-start font-mono text-[12px] tracking-wide outline-none transition focus:border-brand focus:ring-4 focus:ring-brand/10"
               />
@@ -338,32 +363,39 @@ export default function QRScanner() {
           )}
         </div>
 
-        {recentTrees.length > 0 && (
+        {recentCampaigns.length > 0 && (
           <div className="rounded-2xl bg-cream/80 p-3">
             <p className="flex items-center gap-1.5 text-[9.5px] font-semibold text-charcoal/45">
               <Clock className="size-3" />
-              {t("آخر عمليات المسح", "Recent scans")}
+              {t("آخر المواقع المسوحة", "Recently scanned sites")}
             </p>
             <div className="mt-2 space-y-1.5">
-              {recentTrees.map((tree) => (
+              {recentCampaigns.map((campaign) => (
                 <button
-                  key={tree.id}
-                  onClick={() => openTree(tree.id)}
+                  key={campaign.id}
+                  onClick={() => openSite(campaign.id)}
                   className="flex w-full items-center gap-2.5 rounded-2xl border border-line/80 bg-white p-2.5 text-start transition hover:border-brand/35 hover:shadow-sm"
                 >
                   <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-mint-soft text-brand">
                     <TreePine className="size-4.5" />
                   </span>
                   <div className="min-w-0 flex-1">
-                    <p className="font-mono text-[11px] font-bold text-forest">
-                      {tree.id}
+                    <p className="truncate text-[11px] font-bold text-forest">
+                      {lang === "ar" ? campaign.nameAr : campaign.nameEn}
                     </p>
                     <p className="truncate text-[9.5px] text-charcoal/45">
-                      {lang === "ar" ? tree.speciesAr : tree.speciesEn} ·{" "}
-                      {municipalityName(tree.municipalityId, lang)}
+                      <MapPin className="me-1 inline size-2.5" />
+                      {municipalityName(campaign.municipalityId, lang)} ·{" "}
+                      {formatDate(campaign.date, lang, false)}
                     </p>
                   </div>
-                  <StatusPill status={tree.status} lang={lang} />
+                  <Badge tone={statusTone(campaign.status)}>
+                    {campaign.status === "active"
+                      ? t("جارية", "Active")
+                      : campaign.status === "completed"
+                        ? t("مكتملة", "Completed")
+                        : t("مخططة", "Planned")}
+                  </Badge>
                 </button>
               ))}
             </div>
@@ -374,8 +406,8 @@ export default function QRScanner() {
           <div className="flex items-center gap-1.5 text-[9.5px] text-charcoal/50">
             <CheckCircle2 className="size-3.5 text-brand" />
             {t(
-              "كل شجرة تحمل جوازاً رقمياً فريداً وقابلاً للتحقق.",
-              "Every tree has a unique, verifiable digital passport.",
+              "كل موقع تشجير له رمز QR واحد يفتح بطاقته وتفاصيل نموه.",
+              "Every planting site has one QR code that opens its card and growth details.",
             )}
           </div>
           <button

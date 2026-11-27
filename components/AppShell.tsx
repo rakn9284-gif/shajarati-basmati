@@ -19,6 +19,7 @@ import UserManagement from "./UserManagement";
 import Profile from "./Profile";
 import AuthModal from "./AuthModal";
 import TreePassport from "./TreePassport";
+import CampaignSite from "./CampaignSite";
 import QRScanner from "./QRScanner";
 import GridSystem from "./GridSystem";
 import TreeForm from "./TreeForm";
@@ -39,10 +40,10 @@ function Splash() {
         </span>
         <div className="text-center">
           <p className="font-display text-lg font-extrabold text-forest">
-            شجرتي بصمتي
+            حملتي
           </p>
           <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.24em] text-charcoal/35">
-            SHAJARATI BASMATI
+            HAMALATI
           </p>
         </div>
         <div className="flex items-center gap-1.5">
@@ -54,8 +55,8 @@ function Splash() {
             />
           ))}
         </div>
-        <p className="max-w-[240px] text-center text-[10.5px] leading-relaxed text-charcoal/40">
-          لا نغرس شجرة ونرحل، بل نتابعها حتى تنمو
+        <p className="max-w-[260px] text-center text-[10.5px] leading-relaxed text-charcoal/40">
+          نُدير حملات التشجير الجماعية ونوثّق مواقع الغرس حتى تنمو
         </p>
       </div>
     </div>
@@ -118,7 +119,7 @@ function ToastLayer() {
             {toast.message}
           </p>
           <p className="mt-0.5 text-[9.5px] font-semibold uppercase tracking-wide text-charcoal/35">
-            {t("شجرتي بصمتي", "Shajarati Basmati")}
+            {t("حملتي", "Hamalati")}
           </p>
         </div>
         <span className={cn("mt-1 h-8 w-1 shrink-0 rounded-full", style.bar)} />
@@ -171,12 +172,24 @@ function ModalRouter() {
       );
     case "passport":
       return <TreePassport key={modal.treeId} treeId={modal.treeId} />;
+    case "site":
+      return <CampaignSite key={modal.campaignId} campaignId={modal.campaignId} />;
     case "scanner":
       return <QRScanner key="scanner" />;
     case "campaign":
-      return <GridSystem key="campaign" />;
+      return (
+        <GridSystem
+          key={`campaign-${modal.campaignId ?? "new"}`}
+          campaignId={modal.campaignId}
+        />
+      );
     case "tree-form":
-      return <TreeForm key="tree-form" />;
+      return (
+        <TreeForm
+          key={`tree-form-${modal.campaignId ?? "new"}`}
+          campaignId={modal.campaignId}
+        />
+      );
     case "print":
       return <PrintQR key={modal.campaignId} campaignId={modal.campaignId} />;
     case "compose":

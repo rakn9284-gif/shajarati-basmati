@@ -300,6 +300,28 @@ button {
   #print-area * {
     box-shadow: none !important;
   }
+
+  /* A4 field sign: one clean page, no modal chrome or action buttons. */
+  #print-area.site-sign {
+    position: relative !important;
+    inset: auto !important;
+    min-height: 268mm !important;
+    border: 3px solid #123b2a !important;
+    border-radius: 0 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  #print-area.site-sign .site-sign-header,
+  #print-area.site-sign .site-sign-footer {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  #print-area.site-sign svg {
+    max-width: 100% !important;
+    height: auto !important;
+  }
   .print-label {
     break-inside: avoid;
     page-break-inside: avoid;

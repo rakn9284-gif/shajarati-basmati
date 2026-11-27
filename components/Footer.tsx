@@ -41,24 +41,24 @@ export default function Footer() {
               </span>
               <div>
                 <p className="font-display text-lg font-extrabold text-forest">
-                  {t("شجرتي بصمتي", "Shajarati Basmati")}
+                  {t("حملتي", "Hamalati")}
                 </p>
                 <p className="text-[9px] font-bold uppercase tracking-[0.16em] text-charcoal/35">
-                  SHAJARATI BASMATI
+                  HAMALATI
                 </p>
               </div>
             </div>
             <p className="mt-3 max-w-sm text-[11px] leading-relaxed text-charcoal/50">
               {t(
-                "منصة رقمية لمتابعة الأشجار في ولاية سكيكدة: جواز رقمي لكل شجرة، حملات تشجير منظمة، وخرائط تفاعلية للبلديات الثماني والثلاثين.",
-                "A digital platform for tracking trees across Skikda Wilaya: a passport for every tree, organised planting campaigns and interactive maps for all 38 municipalities.",
+                "منصة رقمية لإدارة حملات التشجير الجماعية في ولاية سكيكدة: حدود المواقع على الخريطة، رمز QR واحد لكل حملة، إحصائيات الأشجار والأنواع، وخرائط تفاعلية للبلديات الثماني والثلاثين.",
+                "A digital platform for managing group planting campaigns in Skikda Wilaya: site boundaries on the map, one QR code per campaign, tree and species statistics, and interactive maps for all 38 municipalities.",
               )}
             </p>
             <p className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-mint-soft px-3 py-1.5 text-[10px] font-bold text-brand-dark">
               <Sprout className="size-3.5" />
               {t(
-                "لا نغرس شجرة ونرحل، بل نتابعها حتى تنمو",
-                "We don't plant and leave — we follow until it grows",
+                "نُدير حملات التشجير ونوثّق مواقع الغرس حتى تنمو",
+                "We manage campaigns and document planting sites as they grow",
               )}
             </p>
           </div>
@@ -95,7 +95,7 @@ export default function Footer() {
                   className="inline-flex items-center gap-1.5 text-[11px] font-medium text-charcoal/55 transition hover:text-brand"
                 >
                   <ScanLine className="size-3.5 text-brand" />
-                  {t("مسح رمز QR", "Scan QR")}
+                  {t("مسح رمز موقع", "Scan site QR")}
                 </button>
               </li>
               {user && user.role !== "volunteer" && (
@@ -142,7 +142,7 @@ export default function Footer() {
               </li>
               <li className="flex items-center gap-1.5">
                 <Mail className="size-3.5 shrink-0 text-brand" />
-                <span dir="ltr">contact@shajarati.dz</span>
+                <span dir="ltr">contact@hamalati.dz</span>
               </li>
               <li className="flex items-center gap-1.5">
                 <Phone className="size-3.5 shrink-0 text-brand" />
@@ -170,8 +170,8 @@ export default function Footer() {
           <p>
             © {new Date().getFullYear()}{" "}
             {t(
-              "شجرتي بصمتي — ولاية سكيكدة. جميع الحقوق محفوظة.",
-              "Shajarati Basmati — Skikda Wilaya. All rights reserved.",
+              "حملتي — ولاية سكيكدة. جميع الحقوق محفوظة.",
+              "Hamalati — Skikda Wilaya. All rights reserved.",
             )}
           </p>
           <div className="flex flex-wrap items-center gap-3">

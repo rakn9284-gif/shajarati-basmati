@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { QRCodeSVG } from "qrcode.react";
+import { useState } from "react";
 import {
   AlertTriangle,
   CalendarDays,
@@ -13,8 +12,6 @@ import {
   Grid3X3,
   Leaf,
   MapPin,
-  Printer,
-  QrCode,
   Send,
   Share2,
   ShieldCheck,
@@ -48,11 +45,11 @@ export default function TreePassport({ treeId }: { treeId: string }) {
     user,
     campaigns,
     activities,
+    openModal,
     notify,
   } = useApp();
   const [escalating, setEscalating] = useState(false);
   const [note, setNote] = useState("");
-  const [printQueued, setPrintQueued] = useState(false);
 
   const tree = findTree(treeId);
 
@@ -77,23 +74,13 @@ export default function TreePassport({ treeId }: { treeId: string }) {
       [],
     );
 
-  // Single-tree printable QR label
-  useEffect(() => {
-    if (!printQueued) return;
-    const timer = setTimeout(() => {
-      window.print();
-      setPrintQueued(false);
-    }, 60);
-    return () => clearTimeout(timer);
-  }, [printQueued]);
-
   if (!tree) {
     return (
       <Modal
         open
         onClose={closeModal}
         title={t("جواز الشجرة", "Tree passport")}
-        icon={<QrCode className="size-5" />}
+        icon={<TreePine className="size-5" />}
         size="sm"
       >
         <div className="py-8 text-center">
@@ -104,7 +91,7 @@ export default function TreePassport({ treeId }: { treeId: string }) {
             {t("لم يتم العثور على الشجرة", "Tree not found")}
           </p>
           <p className="mt-1 text-[12px] text-charcoal/50">
-            {t("قد يكون الرمز تالفاً. جرّب استرجاع الرقم من إحداثياته.", "The code may be damaged. Try recovering the ID from its grid coordinates.")}
+            {t("ربما حُذفت الشجرة أو تغيّر رقمها. راجع قائمة أشجار الحملة.", "The tree may have been removed or its ID changed. Check the campaign tree list.")}
           </p>
           <button
             onClick={closeModal}
@@ -202,29 +189,27 @@ export default function TreePassport({ treeId }: { treeId: string }) {
               </div>
             </div>
 
-            <div className="flex items-center gap-2 rounded-2xl bg-white p-2.5 text-charcoal shadow-lg">
-              <div className="rounded-lg bg-white p-1">
-                <QRCodeSVG
-                  value={`https://shajarati.dz/tree/${tree.id}`}
-                  size={78}
-                  bgColor="#ffffff"
-                  fgColor="#123B2A"
-                  level="M"
-                />
-              </div>
-              <div className="hidden pe-1 sm:block">
-                <p className="text-[8px] font-bold uppercase tracking-wider text-charcoal/35">
-                  {t("امسح للتحقق", "SCAN TO VERIFY")}
-                </p>
-                <p className="mt-1 max-w-[92px] text-[9px] leading-snug text-charcoal/55">
-                  {t("جواز رقمي موثّق في سجل ولاية سكيكدة.", "Verified in the Skikda wilaya registry.")}
-                </p>
-                <span className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-mint-soft px-1.5 py-0.5 text-[8px] font-bold text-brand">
-                  <ShieldCheck className="size-2.5" />
-                  {t("موثّق", "VERIFIED")}
+            {campaign && (
+              <button
+                onClick={() => openModal({ type: "site", campaignId: campaign.id })}
+                className="flex items-center gap-2 rounded-2xl bg-white p-2.5 text-start text-charcoal shadow-lg transition hover:bg-mint-soft"
+              >
+                <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-mint-soft text-brand">
+                  <Leaf className="size-5" />
                 </span>
-              </div>
-            </div>
+                <span className="pe-1">
+                  <span className="block text-[8px] font-bold uppercase tracking-wider text-charcoal/35">
+                    {t("موقع الحملة", "CAMPAIGN SITE")}
+                  </span>
+                  <span className="mt-0.5 block max-w-[110px] truncate text-[10px] font-bold text-forest">
+                    {lang === "ar" ? campaign.nameAr : campaign.nameEn}
+                  </span>
+                  <span className="mt-1 inline-flex items-center gap-1 rounded-full bg-mint-soft px-1.5 py-0.5 text-[8px] font-bold text-brand">
+                    {t("فتح بطاقة الموقع", "Open site card")}
+                  </span>
+                </span>
+              </button>
+            )}
           </div>
         </div>
 
@@ -327,8 +312,8 @@ export default function TreePassport({ treeId }: { treeId: string }) {
               <div className="mt-3 flex items-start gap-1.5 rounded-xl bg-[#FBF2DC]/70 px-2.5 py-2 text-[9px] leading-snug text-[#8A6516]">
                 <Grid3X3 className="mt-0.5 size-3 shrink-0" />
                 {t(
-                  `استرجاع الرقم عند تلف الـ QR: ابحث عن الصف ${tree.row} والعمود ${tree.col} في مخطط الحملة.`,
-                  `If the QR is damaged: find row ${tree.row}, column ${tree.col} on the campaign layout.`,
+                  `موضع الشجرة في مخطط الحملة: الصف ${tree.row} والعمود ${tree.col}.`,
+                  `Tree position in the campaign layout: row ${tree.row}, column ${tree.col}.`,
                 )}
               </div>
             </div>
@@ -440,11 +425,19 @@ export default function TreePassport({ treeId }: { treeId: string }) {
                   {t("مشاركة", "Share")}
                 </button>
                 <button
-                  onClick={() => setPrintQueued(true)}
+                  onClick={() =>
+                    campaign
+                      ? openModal({ type: "site", campaignId: campaign.id })
+                      : notify(
+                          "هذه الشجرة غير مرتبطة بحملة.",
+                          "This tree is not linked to a campaign.",
+                          "info",
+                        )
+                  }
                   className="flex items-center justify-center gap-1.5 rounded-xl border border-line bg-cream/70 px-2 py-2 text-[10px] font-semibold text-charcoal/65 transition hover:bg-mint-soft hover:text-brand"
                 >
-                  <Printer className="size-3.5" />
-                  {t("طباعة رمز QR", "Print QR code")}
+                  <MapPin className="size-3.5" />
+                  {t("بطاقة الموقع", "Site card")}
                 </button>
                 {canEscalate ? (
                   <button
@@ -539,8 +532,8 @@ export default function TreePassport({ treeId }: { treeId: string }) {
               ) : (
                 <p className="mt-2 rounded-xl bg-cream/60 px-2.5 py-2 text-[9.5px] leading-relaxed text-charcoal/45">
                   {t(
-                    "لا سقايات موثقة لهذه الشجرة بعد — أول توثيق ميداني سيُسجَّل هنا فور مسح الرمز.",
-                    "No verified waterings yet — the first authenticated scan lands here.",
+                    "لا سقايات موثقة لهذه الشجرة بعد — أول توثيق ميداني سيُسجَّل هنا فور فتح الجواز.",
+                    "No verified waterings yet — the first field record will appear here.",
                   )}
                 </p>
               )}
@@ -563,7 +556,7 @@ export default function TreePassport({ treeId }: { treeId: string }) {
         <div className="flex flex-wrap items-center justify-between gap-2 border-t border-line/70 bg-white/70 px-5 py-3 sm:px-6">
           <div className="flex items-center gap-1.5 text-[9px] text-charcoal/40">
             <ShieldCheck className="size-3.5 text-brand" />
-            {t("سجل رقمي موثّق · شجرتي بصمتي", "Verified digital record · Shajarati Basmati")}
+            {t("سجل رقمي موثّق · حملتي", "Verified digital record · Hamalati")}
           </div>
           <div className="flex items-center gap-2">
             <CopyButton value={tree.id} lang={lang} labelAr="نسخ معرف الشجرة" labelEn="Copy tree ID" />
@@ -574,33 +567,6 @@ export default function TreePassport({ treeId }: { treeId: string }) {
         </div>
       </div>
 
-      {/* Print-only: individual QR label for this single tree */}
-      <div className="print-only" aria-hidden={printQueued ? undefined : true}>
-        <div id="print-area" className="p-6" dir="ltr">
-          <div className="print-label mx-auto w-[240px] border-2 border-[#123B2A] p-4 text-center">
-            <p className="text-[9px] font-bold uppercase tracking-widest text-[#123B2A]">
-              SHAJARATI BASMATI · Skikda
-            </p>
-            <div className="my-3 flex justify-center">
-              <QRCodeSVG value={tree.id} size={150} level="H" bgColor="#ffffff" fgColor="#123B2A" />
-            </div>
-            <p className="font-mono text-[15px] font-extrabold text-[#123B2A]">{tree.id}</p>
-            <p className="mt-1 text-[11px] font-semibold text-[#202B25]">
-              {tree.speciesAr} / {tree.speciesEn}
-            </p>
-            <p className="mt-0.5 text-[10px] text-[#202B25]/70">
-              {muni.nameAr} / {muni.nameEn} · R{tree.row} C{tree.col}
-            </p>
-            <p className="mt-0.5 text-[9px] text-[#202B25]/60">
-              Lat {tree.lat} · Lng {tree.lng} · Planted {tree.plantedAt}
-            </p>
-            <p className="mt-2 border-t border-dashed border-[#123B2A]/40 pt-1.5 text-[8px] text-[#202B25]/60">
-              If the QR is damaged: locate row {tree.row}, column {tree.col} on the campaign
-              layout map to recover the ID.
-            </p>
-          </div>
-        </div>
-      </div>
     </Modal>
   );
 }

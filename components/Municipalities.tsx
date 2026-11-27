@@ -124,8 +124,8 @@ export default function Municipalities() {
       openModal({ type: "print", campaignId: activeCampaign.id });
     } else {
       notify(
-        "لا توجد حملة مطبوعة لهذه البلدية بعد. أنشئ حملة أولاً.",
-        "No campaign to print for this municipality yet. Create one first.",
+        "لا توجد حملة لهذه البلدية بعد. أنشئ حملة أولاً.",
+        "No campaign for this municipality yet. Create one first.",
         "info",
       );
     }
@@ -158,7 +158,7 @@ export default function Municipalities() {
         m.adminName,
       ]),
     ];
-    downloadCSV("shajarati-municipalities-skikda.csv", rows);
+    downloadCSV("hamalati-municipalities-skikda.csv", rows);
     notify(t("تم تصدير دليل البلديات.", "Municipality directory exported."));
   };
 
@@ -298,7 +298,7 @@ export default function Municipalities() {
                 className="inline-flex items-center gap-1.5 rounded-full border border-line bg-white px-3.5 py-2 text-[10.5px] font-semibold text-forest transition hover:bg-mint-soft"
               >
                 <Printer className="size-3.5" />
-                {t("طباعة QR", "Print QR")}
+                {t("لافتة الموقع", "Site sign")}
               </button>
               <button
                 onClick={() => setActiveMunicipality(null)}
@@ -410,8 +410,8 @@ export default function Municipalities() {
                   </p>
                   <p className="mt-1 text-[9px] leading-relaxed text-charcoal/35">
                     {t(
-                      "أنشئ حملة تشجير لإصدار جوازات وأرقام QR لهذه البلدية.",
-                      "Create a campaign to issue passports and QR IDs for this municipality.",
+                      "أنشئ حملة تشجير لإصدار بطاقة موقع ورمز QR واحد لهذه البلدية.",
+                      "Create a campaign to issue one site card and QR code for this municipality.",
                     )}
                   </p>
                 </div>
@@ -422,7 +422,7 @@ export default function Municipalities() {
                   className="flex w-full items-center justify-center gap-1.5 border-t border-line/60 py-2.5 text-[10px] font-semibold text-brand hover:bg-mint-soft/50"
                 >
                   <Printer className="size-3" />
-                  {t("فتح ورقة رموز QR", "Open QR sheet")}
+                  {t("فتح لافتة الموقع", "Open site sign")}
                 </button>
               )}
             </div>

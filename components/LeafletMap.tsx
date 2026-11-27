@@ -5,13 +5,14 @@ import {
   CircleMarker,
   GeoJSON,
   MapContainer,
+  Polygon,
   TileLayer,
   Tooltip,
 } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import communes from "@/lib/skikda-communes.json";
-import type { Municipality, Tree, TreeStatus } from "@/lib/types";
+import type { Campaign, Municipality, Tree, TreeStatus } from "@/lib/types";
 import { STATUS_COLORS } from "@/lib/municipalities";
 
 const SKIKDA_CENTER: [number, number] = [36.876, 6.906];
@@ -43,9 +44,11 @@ const statusColor = (status: TreeStatus) => STATUS_COLORS[status];
 export interface LeafletMapProps {
   municipalities?: Municipality[];
   trees: Tree[];
+  campaigns?: Campaign[];
   activeMunicipality: string | null;
   onSelectMunicipality: (id: string | null) => void;
   onSelectTree: (treeId: string) => void;
+  onSelectCampaign?: (campaignId: string) => void;
 }
 
 /**
@@ -55,9 +58,11 @@ export interface LeafletMapProps {
  */
 export default function LeafletMap({
   trees,
+  campaigns = [],
   activeMunicipality,
   onSelectMunicipality,
   onSelectTree,
+  onSelectCampaign,
 }: LeafletMapProps) {
   const plantedIds = useMemo(
     () => new Set(trees.map((tr) => tr.municipalityId)),
@@ -100,6 +105,59 @@ export default function LeafletMap({
           );
         },
       )}
+
+      {/* Campaign site boundaries — translucent green; click opens the site card. */}
+      {campaigns.map((campaign) => {
+        const label = `${campaign.nameAr} / ${campaign.nameEn}`;
+        const open = () => onSelectCampaign?.(campaign.id);
+        if (campaign.polygon && campaign.polygon.length >= 3) {
+          return (
+            <Polygon
+              key={`site-${campaign.id}`}
+              positions={campaign.polygon}
+              pathOptions={{
+                color: "#123B2A",
+                weight: 2,
+                fillColor: "#16865B",
+                fillOpacity: 0.28,
+              }}
+              eventHandlers={{
+                click: (event) => {
+                  event.originalEvent.stopPropagation();
+                  open();
+                },
+              }}
+            >
+              <Tooltip direction="top" opacity={0.95}>
+                <span className="text-[10px] font-bold">{label}</span>
+              </Tooltip>
+            </Polygon>
+          );
+        }
+        return (
+          <CircleMarker
+            key={`site-${campaign.id}`}
+            center={[campaign.lat, campaign.lng]}
+            radius={9}
+            pathOptions={{
+              color: "#FFFFFF",
+              weight: 2,
+              fillColor: "#123B2A",
+              fillOpacity: 0.9,
+            }}
+            eventHandlers={{
+              click: (event) => {
+                event.originalEvent.stopPropagation();
+                open();
+              },
+            }}
+          >
+            <Tooltip direction="top" opacity={0.95}>
+              <span className="text-[10px] font-bold">{label}</span>
+            </Tooltip>
+          </CircleMarker>
+        );
+      })}
 
       {trees.map((tree) => (
         <CircleMarker

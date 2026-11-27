@@ -4,27 +4,28 @@ import { AppProvider } from "@/lib/store";
 
 export const metadata: Metadata = {
   title: {
-    default: "شجرتي بصمتي | SHAJARATI BASMATI — Skikda",
-    template: "%s | شجرتي بصمتي",
+    default: "حملتي | HAMALATI — Skikda",
+    template: "%s | حملتي",
   },
   description:
-    "منصة رقمية لمتابعة وإدارة الأشجار في ولاية سكيكدة: جواز رقمي لكل شجرة، حملات تشجير، خرائط تفاعلية، ومجلة مجتمعية. لا نغرس شجرة ونرحل، بل نتابعها حتى تنمو.",
+    "منصة رقمية لإدارة وتوثيق حملات التشجير الجماعية ومواقع الغرس في ولاية سكيكدة: حدود الموقع على الخريطة، رمز QR واحد لكل حملة، إحصائيات الأشجار والأنواع، ومجلة مجتمعية.",
   keywords: [
-    "شجرتي بصمتي",
+    "حملتي",
+    "HAMALATI",
     "سكيكدة",
     "تشجير",
+    "حملات تشجير",
+    "مواقع غرس",
     "بيئة",
     "الجزائر",
-    "SHAJARATI BASMATI",
     "Skikda",
-    "tree management",
-    "reforestation",
+    "reforestation campaigns",
   ],
-  authors: [{ name: "Shajarati Basmati" }],
+  authors: [{ name: "Hamalati" }],
   openGraph: {
-    title: "شجرتي بصمتي | SHAJARATI BASMATI",
+    title: "حملتي | HAMALATI",
     description:
-      "كل شجرة لها هوية، وكل بصمة تصنع ظلاً. منصة إدارة التشجير لولاية سكيكدة.",
+      "كل حملة تشجير لها موقع موثّق ورمز QR واحد يفتح بطاقتها ومتابعة نموها.",
     type: "website",
     locale: "ar_DZ",
   },

@@ -1,5 +1,6 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useMemo, useState } from "react";
 import {
   ArrowLeft,
@@ -17,6 +18,7 @@ import {
   Rows3,
   Sparkles,
   Sprout,
+  Trash2,
   TreePine,
   Users,
 } from "lucide-react";
@@ -27,8 +29,23 @@ import {
   municipalities,
 } from "@/lib/municipalities";
 import { SPECIES, getSpecies } from "@/lib/data";
-import { cn, formatDate, pad3, sequenceFromId, todayISO } from "@/lib/utils";
+import {
+  cn,
+  formatArea,
+  formatDate,
+  polygonAreaSqm,
+  todayISO,
+} from "@/lib/utils";
 import { Badge, Modal, Progress } from "./ui";
+
+const PolygonDrawMap = dynamic(() => import("./PolygonDrawMap"), {
+  ssr: false,
+  loading: () => (
+    <div className="grid size-full place-items-center bg-mint-soft/60 text-[10px] font-semibold text-brand-dark/70">
+      جارٍ تحميل الخريطة…
+    </div>
+  ),
+});
 
 const STEPS = [
   { ar: "معلومات الحملة", en: "Campaign details" },
@@ -36,18 +53,21 @@ const STEPS = [
   { ar: "المراجعة والإنشاء", en: "Review & create" },
 ];
 
-export default function GridSystem() {
+export default function GridSystem({ campaignId }: { campaignId?: string }) {
   const {
     t,
     lang,
     user,
-    trees,
     campaigns,
     createCampaign,
+    updateCampaign,
     closeModal,
     openModal,
     activeMunicipality,
   } = useApp();
+
+  const editingCampaign = campaigns.find((c) => c.id === campaignId);
+  const isEdit = !!editingCampaign;
 
   const defaultMuni =
     user?.role === "municipality_admin" && user.municipalityId
@@ -56,38 +76,57 @@ export default function GridSystem() {
   const initialMuni = getMunicipality(defaultMuni);
 
   const [step, setStep] = useState(0);
-  const [nameAr, setNameAr] = useState(`حملة ${initialMuni.nameAr} الخضراء`);
-  const [nameEn, setNameEn] = useState(`Green ${initialMuni.nameEn} Campaign`);
-  const [municipalityId, setMunicipalityId] = useState(defaultMuni);
-  const [date, setDate] = useState(todayISO());
-  const [speciesAr, setSpeciesAr] = useState<string>(SPECIES[0].ar);
-  const [speciesEn, setSpeciesEn] = useState<string>(SPECIES[0].en);
-  const [customSpecies, setCustomSpecies] = useState(false);
-  const [customName, setCustomName] = useState("");
-  const [count, setCount] = useState(50);
-  const [layout, setLayout] = useState<"grid" | "rows">("grid");
-  const [spacing, setSpacing] = useState(4);
+  const [nameAr, setNameAr] = useState(
+    editingCampaign?.nameAr ?? `حملة ${initialMuni.nameAr} الخضراء`,
+  );
+  const [nameEn, setNameEn] = useState(
+    editingCampaign?.nameEn ?? `Green ${initialMuni.nameEn} Campaign`,
+  );
+  const [municipalityId, setMunicipalityId] = useState(
+    editingCampaign?.municipalityId ?? defaultMuni,
+  );
+  const [date, setDate] = useState(editingCampaign?.date ?? todayISO());
+  const [organizer, setOrganizer] = useState(
+    editingCampaign?.organizer?.trim() ||
+      (user ? `${user.firstName} ${user.lastName}`.trim() : ""),
+  );
+  const [polygon, setPolygon] = useState<[number, number][]>(
+    editingCampaign?.polygon ?? [],
+  );
+  const [speciesAr, setSpeciesAr] = useState<string>(
+    editingCampaign?.speciesAr || SPECIES[0].ar,
+  );
+  const [speciesEn, setSpeciesEn] = useState<string>(
+    editingCampaign?.speciesEn || SPECIES[0].en,
+  );
+  const [customSpecies, setCustomSpecies] = useState(
+    !!editingCampaign && !SPECIES.some((sp) => sp.ar === editingCampaign.speciesAr),
+  );
+  const [customName, setCustomName] = useState(
+    editingCampaign && !SPECIES.some((sp) => sp.ar === editingCampaign.speciesAr)
+      ? editingCampaign.speciesAr
+      : "",
+  );
+  const [count, setCount] = useState(editingCampaign?.target ?? 50);
+  const [layout, setLayout] = useState<"grid" | "rows">(
+    editingCampaign?.layout ?? "grid",
+  );
+  const [spacing, setSpacing] = useState(editingCampaign?.spacing ?? 4);
   const [error, setError] = useState("");
 
   const muni = municipalityById(municipalityId) ?? initialMuni;
-  const [lat, setLat] = useState(String(muni.lat));
-  const [lng, setLng] = useState(String(muni.lng));
+  const [lat, setLat] = useState(String(editingCampaign?.lat ?? muni.lat));
+  const [lng, setLng] = useState(String(editingCampaign?.lng ?? muni.lng));
+  const boundary = polygon.length >= 3 ? polygon : undefined;
+  const areaSqm = useMemo(() => polygonAreaSqm(polygon), [polygon]);
+  const center: [number, number] = [
+    lat.trim() !== "" && Number.isFinite(Number(lat)) ? Number(lat) : muni.lat,
+    lng.trim() !== "" && Number.isFinite(Number(lng)) ? Number(lng) : muni.lng,
+  ];
+  const steps = isEdit ? [STEPS[0], STEPS[2]] : STEPS;
+  const finalStep = steps.length - 1;
   const cols = layout === "grid" ? Math.max(1, Math.ceil(Math.sqrt(count))) : Math.max(1, Math.min(12, count));
   const rows = Math.ceil(count / cols);
-
-  const startSeq = useMemo(() => {
-    const maxTree = trees
-      .filter((tr) => tr.municipalityId === municipalityId)
-      .reduce((max, tr) => Math.max(max, sequenceFromId(tr.id)), 0);
-    const maxCampaign = campaigns
-      .filter((c) => c.municipalityId === municipalityId)
-      .reduce((max, c) => Math.max(max, sequenceFromId(c.id)), 0);
-    return Math.max(maxTree, maxCampaign) + 1;
-  }, [trees, campaigns, municipalityId]);
-
-  const sampleIds = Array.from({ length: Math.min(4, count) }, (_, i) =>
-    `SKK-${muni.code}-${pad3(startSeq + i)}`,
-  );
 
   const restricted = !user || user.role === "volunteer";
   const muniLocked = user?.role === "municipality_admin";
@@ -105,6 +144,7 @@ export default function GridSystem() {
       if (nameEn.startsWith("Green ")) setNameEn(`Green ${next.nameEn} Campaign`);
       setLat(String(next.lat));
       setLng(String(next.lng));
+      setPolygon([]);
     }
   };
 
@@ -146,13 +186,22 @@ export default function GridSystem() {
         return;
       }
     }
-    if (step === 1) {
+    if (polygon.length > 0 && polygon.length < 3) {
+      setError(
+        t(
+          "أكمل رسم حدود الموقع بثلاث نقاط على الأقل، أو امسح النقاط المرسومة.",
+          "Draw at least three boundary points, or clear the drawn points.",
+        ),
+      );
+      return;
+    }
+    if (step === 1 && !isEdit) {
       if (count < 1 || count > 300) {
         setError(t("عدد الأشجار يجب أن يكون بين 1 و300.", "Tree count must be between 1 and 300."));
         return;
       }
     }
-    setStep((s) => Math.min(2, s + 1));
+    setStep((s) => Math.min(finalStep, s + 1));
   };
 
   const create = () => {
@@ -161,18 +210,34 @@ export default function GridSystem() {
       openModal({ type: "auth", mode: "login" });
       return;
     }
-    const id = createCampaign({
+    const fields = {
       nameAr: nameAr.trim(),
       nameEn: nameEn.trim() || nameAr.trim(),
       municipalityId,
       date,
-      count,
-      layout,
-      spacing,
       speciesAr: effectiveAr,
       speciesEn: effectiveEn,
       lat: Number(Number(lat).toFixed(6)),
       lng: Number(Number(lng).toFixed(6)),
+      organizer: organizer.trim(),
+      polygon: boundary,
+      areaSqm: boundary ? areaSqm : undefined,
+    };
+
+    if (isEdit && editingCampaign) {
+      const saved = updateCampaign(editingCampaign.id, fields);
+      if (saved) {
+        closeModal();
+        openModal({ type: "site", campaignId: editingCampaign.id });
+      }
+      return;
+    }
+
+    const id = createCampaign({
+      ...fields,
+      count,
+      layout,
+      spacing,
     });
     if (id) {
       closeModal();
@@ -198,8 +263,8 @@ export default function GridSystem() {
           </p>
           <p className="mx-auto mt-1 max-w-xs text-[12px] leading-relaxed text-charcoal/50">
             {t(
-              "سجّل الدخول بحساب أدمن بلدية أو أدمن ولاية لإنشاء حملة تشجير وإصدار رموز QR.",
-              "Sign in as a municipality or state admin to create campaigns and issue QR codes.",
+              "سجّل الدخول بحساب أدمن بلدية أو أدمن ولاية لإنشاء موقع تشجير ولافته الميدانية.",
+              "Sign in as a municipality or state admin to create a planting site and its field sign.",
             )}
           </p>
           <div className="mt-4 flex justify-center gap-2">
@@ -228,10 +293,14 @@ export default function GridSystem() {
     <Modal
       open
       onClose={closeModal}
-      title={t("إضافة حملة تشجير", "Add a planting campaign")}
+      title={
+        isEdit
+          ? t("تعديل موقع الحملة", "Edit campaign site")
+          : t("إضافة حملة تشجير", "Add a planting campaign")
+      }
       subtitle={t(
-        "حدّد الموقع، عدد الأشجار، ونمط التوزيع الهندسي — وسنصدر جوازاً ورمز QR لكل شجرة.",
-        "Set the site, tree count and geometric layout — we issue a passport and QR code for each tree.",
+        "حدّد حدود الموقع على الخريطة وبيانات الحملة — وسيُصدر رمز QR واحد لكل موقع.",
+        "Draw the site boundary on the map and set campaign details — one QR code is issued per site.",
       )}
       icon={<TreePine className="size-5" />}
       size="xl"
@@ -261,7 +330,7 @@ export default function GridSystem() {
                 {t("إلغاء", "Cancel")}
               </button>
             )}
-            {step < 2 ? (
+            {step < finalStep ? (
               <button
                 onClick={next}
                 className="inline-flex items-center gap-1.5 rounded-full bg-forest px-5 py-2.5 text-[11.5px] font-bold text-white transition hover:bg-brand-dark"
@@ -275,7 +344,9 @@ export default function GridSystem() {
                 className="inline-flex items-center gap-1.5 rounded-full bg-brand px-5 py-2.5 text-[11.5px] font-bold text-white shadow-[0_12px_26px_-16px_rgba(22,134,91,0.9)] transition hover:bg-brand-dark"
               >
                 <Sparkles className="size-3.5" />
-                {t("إنشاء الحملة وإصدار الرموز", "Create campaign & issue QR codes")}
+                {isEdit
+                  ? t("حفظ تعديلات الموقع", "Save site changes")
+                  : t("إنشاء الحملة ولافتها", "Create campaign & sign")}
               </button>
             )}
           </div>
@@ -285,7 +356,7 @@ export default function GridSystem() {
       <div className="space-y-4">
         {/* Stepper */}
         <div className="flex items-center gap-1.5 rounded-2xl border border-line/70 bg-white p-1.5">
-          {STEPS.map((s, i) => {
+          {steps.map((s, i) => {
             const active = i === step;
             const done = i < step;
             return (
@@ -445,6 +516,81 @@ export default function GridSystem() {
             </div>
 
             <div>
+              <label className="mb-1.5 flex items-center gap-1.5 text-[11px] font-semibold text-charcoal/65">
+                <Users className="size-3.5 text-brand" />
+                {t("الجهة المنظمة", "Organizer")}
+              </label>
+              <input
+                value={organizer}
+                onChange={(e) => setOrganizer(e.target.value)}
+                className="w-full rounded-2xl border border-line bg-white px-3.5 py-2.5 text-[12px] outline-none transition focus:border-brand focus:ring-4 focus:ring-brand/10"
+                placeholder={t(
+                  "مثال: جمعية متطوعي سكيكدة",
+                  "e.g. Skikda volunteers association",
+                )}
+              />
+            </div>
+
+            <div className="rounded-[22px] border border-line/70 bg-white p-4">
+              <div className="flex flex-wrap items-start justify-between gap-2">
+                <div>
+                  <p className="flex items-center gap-1.5 text-[11px] font-bold text-forest">
+                    <MapPin className="size-3.5 text-brand" />
+                    {t("حدود موقع التشجير على الخريطة", "Site boundary on the map")}
+                  </p>
+                  <p className="mt-0.5 text-[9px] leading-snug text-charcoal/45">
+                    {t(
+                      "انقر على الخريطة لإضافة نقاط المضلع (3 نقاط على الأقل). تركها فارغاً اختياري.",
+                      "Click the map to add polygon points (at least 3). Leaving it empty is optional.",
+                    )}
+                  </p>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="rounded-full bg-mint-soft px-2.5 py-1 font-mono text-[10px] font-bold text-brand">
+                    {polygon.length} {t("نقطة", "points")}
+                  </span>
+                  <span className="rounded-full border border-line px-2.5 py-1 font-mono text-[10px] font-bold text-forest">
+                    {formatArea(areaSqm, lang)}
+                  </span>
+                </div>
+              </div>
+              <div className="mt-3 h-[230px] overflow-hidden rounded-2xl border border-line/70">
+                <PolygonDrawMap
+                  center={center}
+                  value={polygon}
+                  onChange={setPolygon}
+                />
+              </div>
+              <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
+                <p className="text-[9px] text-charcoal/40">
+                  {t(
+                    "نقطة المركز المُدخلة أعلاه تبقى مرجع الموقع حتى دون رسم مضلع.",
+                    "The centre coordinates above stay the site reference even without a polygon.",
+                  )}
+                </p>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => setPolygon((pts) => pts.slice(0, -1))}
+                    disabled={polygon.length === 0}
+                    className="rounded-full border border-line bg-white px-2.5 py-1 text-[9.5px] font-semibold text-forest transition hover:bg-mint-soft disabled:opacity-40"
+                  >
+                    {t("إزالة آخر نقطة", "Undo point")}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPolygon([])}
+                    disabled={polygon.length === 0}
+                    className="inline-flex items-center gap-1 rounded-full border border-line bg-white px-2.5 py-1 text-[9.5px] font-semibold text-forest transition hover:bg-mint-soft disabled:opacity-40"
+                  >
+                    <Trash2 className="size-3" />
+                    {t("مسح / إعادة رسم", "Clear / redraw")}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div>
               <label className="mb-1.5 block text-[11px] font-semibold text-charcoal/65">
                 {t("نوع الشجرة", "Tree species")}
               </label>
@@ -526,14 +672,14 @@ export default function GridSystem() {
             <div className="flex items-start gap-2 rounded-2xl bg-mint-soft/60 p-3 text-[10px] leading-relaxed text-brand-dark/70">
               <Info className="mt-0.5 size-3.5 shrink-0" />
               {t(
-                "سيتم توليد رقم تسلسلي فريد لكل شجرة بصيغة SKK-XXX-000، مع إحداثيات صف وعمود تسمح باسترجاع الرقم عند تلف رمز QR.",
-                "Each tree receives a unique sequential ID (SKK-XXX-000) plus row/column coordinates for QR recovery.",
+                "تُسجَّل الأشجار داخل الحملة برقم تسلسلي وإحداثيات صف وعمود لحساب إحصائيات الأنواع، بينما يُصدر رمز QR واحد للموقع فقط.",
+                "Trees are registered with sequential IDs and row/column coordinates for species statistics; only the site gets a QR code.",
               )}
             </div>
           </div>
         )}
 
-        {step === 1 && (
+        {step === 1 && !isEdit && (
           <div className="grid gap-4 animate-fade-up lg:grid-cols-[1fr_1.05fr]">
             <div className="space-y-4">
               <div>
@@ -710,15 +856,15 @@ export default function GridSystem() {
               <div className="mt-2.5 flex items-start gap-1.5 rounded-xl bg-[#FBF2DC]/70 px-2.5 py-2 text-[8.5px] leading-snug text-[#8A6516]">
                 <Grid3X3 className="mt-0.5 size-3 shrink-0" />
                 {t(
-                  "كل نقطة تمثل شجرة. الإحداثيات (صف/عمود) تُستخدم لاسترجاع الرقم عند تلف الـ QR.",
-                  "Each dot is a tree. Row/column coordinates recover the ID if the QR is damaged.",
+                  "كل نقطة تمثل شجرة. الإحداثيات (صف/عمود) تُستخدم لاسترجاع رقم الشجرة من مخطط الحملة.",
+                  "Each dot is a tree. Row/column coordinates recover its ID from the campaign layout.",
                 )}
               </div>
             </div>
           </div>
         )}
 
-        {step === 2 && (
+        {step === finalStep && (
           <div className="space-y-4 animate-fade-up">
             <div className="overflow-hidden rounded-[22px] border border-line/70 bg-white">
               <div className="flex flex-wrap items-center justify-between gap-3 bg-forest px-4 py-3 text-white">
@@ -757,39 +903,45 @@ export default function GridSystem() {
               <div className="rounded-2xl border border-line/70 bg-white p-4">
                 <p className="flex items-center gap-1.5 text-[10.5px] font-bold text-forest">
                   <QrCode className="size-3.5 text-brand" />
-                  {t("معاينة أرقام الأشجار", "Tree ID preview")}
+                  {t("رمز QR واحد للموقع", "One QR code for the site")}
                 </p>
-                <div className="mt-2.5 space-y-1.5">
-                  {sampleIds.map((id, i) => (
-                    <div
-                      key={id}
-                      className="flex items-center justify-between rounded-lg bg-cream/70 px-2.5 py-1.5"
-                    >
-                      <span className="font-mono text-[10px] font-bold text-forest">{id}</span>
-                      <span className="text-[8.5px] text-charcoal/40">
-                        R{Math.floor(i / cols) + 1} / C{(i % cols) + 1}
-                      </span>
-                    </div>
-                  ))}
-                  {count > 4 && (
-                    <p className="text-center text-[8.5px] text-charcoal/35">
-                      + {count - 4} {t("شجرة أخرى", "more trees")}
+                <div className="mt-2.5 flex items-center gap-3 rounded-xl bg-cream/70 px-3 py-2.5">
+                  <div className="grid size-14 shrink-0 place-items-center rounded-lg bg-white ring-1 ring-line">
+                    <QrCode className="size-8 text-forest" strokeWidth={1.4} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-mono text-[10.5px] font-bold text-forest" dir="ltr">
+                      ?campaign=…
                     </p>
-                  )}
+                    <p className="mt-0.5 text-[9px] leading-snug text-charcoal/45">
+                      {t(
+                        "مسح الرمز يفتح بطاقة الموقع: الاسم، البلدية، التاريخ، الجهة المنظمة، إجمالي الأشجار والأنواع، وحالة الموقع.",
+                        "Scanning opens the site card: name, municipality, date, organizer, tree/species totals and site status.",
+                      )}
+                    </p>
+                  </div>
+                </div>
+                <div className="mt-2 flex flex-wrap gap-1.5 text-[9px] text-charcoal/45">
+                  <span className="rounded-full bg-mint-soft px-2 py-0.5 font-semibold text-brand">
+                    {organizer.trim() || t("بدون جهة منظمة", "No organizer")}
+                  </span>
+                  <span className="rounded-full border border-line px-2 py-0.5 font-semibold text-forest">
+                    {formatArea(areaSqm, lang)}
+                  </span>
                 </div>
               </div>
 
               <div className="rounded-2xl border border-line/70 bg-white p-4">
                 <p className="flex items-center gap-1.5 text-[10.5px] font-bold text-forest">
-                  <QrCode className="size-3.5 text-brand" />
+                  <Check className="size-3.5 text-brand" />
                   {t("ما سيتم إصداره", "What gets issued")}
                 </p>
                 <ul className="mt-2 space-y-1.5 text-[9.5px] text-charcoal/55">
                   {[
-                    t(`${count} جواز شجرة رقمي`, `${count} digital tree passports`),
-                    t(`${count} رمز QR قابل للطباعة`, `${count} printable QR codes`),
-                    t("مخطط شبكي لاسترجاع الأرقام", "A grid map for ID recovery"),
-                    t("سجل سقاية ورعاية لكل شجرة", "Care & watering log per tree"),
+                    t("لافتة ميدانية واحدة مقاس A4", "One A4 field sign"),
+                    t("رمز QR واحد عالي الدقة لكل موقع", "One high-resolution QR code per site"),
+                    t("بطاقة موقع كاملة تُعرض عند المسح", "A full site card shown on scan"),
+                    t("إحصائيات الأنواع من الأشجار المسجّلة", "Species statistics from registered trees"),
                   ].map((item) => (
                     <li key={item} className="flex items-center gap-1.5">
                       <Check className="size-3 text-brand" />
@@ -803,17 +955,20 @@ export default function GridSystem() {
             <div className="flex items-start gap-2 rounded-2xl bg-mint-soft/60 p-3 text-[10px] leading-relaxed text-brand-dark/70">
               <Sprout className="mt-0.5 size-3.5 shrink-0" />
               {t(
-                "بعد الإنشاء، ستفتح نافذة طباعة رموز QR مباشرة. يمكنك دائماً الرجوع إليها من صفحة الحملة.",
-                "After creation, the QR print sheet opens automatically. You can always reopen it from the campaign.",
+                "بعد الإنشاء، ستفتح لافتة الموقع للطباعة مباشرة. تبقى الأشجار مسجّلة داخل الحملة لحساب الإحصائيات ومتابعة الرعاية.",
+                "After creation, the site sign opens for printing automatically. Trees stay registered within the campaign for statistics and care tracking.",
               )}
             </div>
           </div>
         )}
 
         <div className="flex items-center gap-2">
-          <Progress value={((step + 1) / 3) * 100} className="h-1.5 flex-1" />
+          <Progress
+            value={((step + 1) / steps.length) * 100}
+            className="h-1.5 flex-1"
+          />
           <span className="text-[9px] font-semibold text-charcoal/40">
-            {step + 1}/3
+            {step + 1}/{steps.length}
           </span>
         </div>
       </div>

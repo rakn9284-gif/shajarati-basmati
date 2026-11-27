@@ -1,8 +1,8 @@
 {
-  "name": "shajarati-basmati",
+  "name": "hamalati",
   "version": "1.0.0",
   "private": true,
-  "description": "SHAJARATI BASMATI — Environmental tree management platform for Skikda Wilaya",
+  "description": "HAMALATI — Group planting campaign and site management platform for Skikda Wilaya",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

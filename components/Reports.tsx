@@ -175,7 +175,7 @@ export default function Reports() {
         m.adminName,
       ]),
     ];
-    downloadCSV("shajarati-reports-skikda.csv", rows);
+    downloadCSV("hamalati-reports-skikda.csv", rows);
     notify(
       "تم تصدير التقرير بصيغة CSV.",
       "The report has been exported as CSV.",

@@ -107,12 +107,12 @@ export default function Profile() {
                   {t("حسابي", "MY PROFILE")}
                 </p>
                 <h1 className="mt-2 font-display text-2xl font-extrabold leading-snug sm:text-[32px]">
-                  {t("بصمتك تبدأ بحساب", "Your mark starts with an account")}
+                  {t("حملتك تبدأ بحساب", "Your campaign starts with an account")}
                 </h1>
                 <p className="mt-2 max-w-xl text-[12px] leading-relaxed text-white/60">
                   {t(
-                    "سجّل الدخول لمتابعة الأشجار التي سقيتها، جوازاتك الرقمية، ومساهماتك في مجلة شجرتي بصمتي. أو انضم كمتطوع جديد في دقيقة واحدة.",
-                    "Sign in to follow the trees you watered, your digital passports and your magazine contributions. Or join as a new volunteer in one minute.",
+                    "سجّل الدخول لمتابعة الحملات التي ساهمت فيها، مواقع الغرس التي سقيتها، ومساهماتك في مجلة حملتي. أو انضم كمتطوع جديد في دقيقة واحدة.",
+                    "Sign in to follow campaigns you joined, the sites you watered and your contributions to Hamalati magazine. Or join as a new volunteer in one minute.",
                   )}
                 </p>
                 <div className="mt-4 flex flex-wrap gap-2">
@@ -134,7 +134,7 @@ export default function Profile() {
                 <div className="mt-4 flex flex-wrap gap-3 text-[10px] text-white/45">
                   <span className="flex items-center gap-1">
                     <Check className="size-3 text-mint" />
-                    {t("جواز رقمي لكل شجرة", "A passport per tree")}
+                    {t("بطاقة موقع لكل حملة", "A site card per campaign")}
                   </span>
                   <span className="flex items-center gap-1">
                     <Check className="size-3 text-mint" />

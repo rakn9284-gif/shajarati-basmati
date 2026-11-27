@@ -70,6 +70,12 @@ export interface Campaign {
   speciesEn: string;
   lat: number;
   lng: number;
+  /** الجهة المنظمة للحملة — تظهر في بطاقة الموقع واللافتة الميدانية */
+  organizer?: string;
+  /** حدود موقع التشجير بصيغة [خط العرض، خط الطول] */
+  polygon?: [number, number][];
+  /** المساحة التقريبية للمضلع بالمتر المربع */
+  areaSqm?: number;
   status: "planned" | "active" | "completed";
   createdAt: string;
 }
@@ -135,8 +141,9 @@ export type ModalState =
   | { type: "auth"; mode: "login" | "signup" }
   | { type: "passport"; treeId: string }
   | { type: "scanner" }
-  | { type: "campaign" }
-  | { type: "tree-form" }
+  | { type: "site"; campaignId: string }
+  | { type: "campaign"; campaignId?: string }
+  | { type: "tree-form"; campaignId?: string }
   | { type: "print"; campaignId: string }
   | { type: "compose"; postId?: string }
   | { type: "post"; postId: string }
@@ -154,9 +161,13 @@ export interface CampaignInput {
   speciesEn: string;
   lat: number;
   lng: number;
+  organizer: string;
+  polygon?: [number, number][];
+  areaSqm?: number;
 }
 
 export interface TreeInput {
+  campaignId?: string;
   municipalityId: string;
   speciesAr: string;
   speciesEn: string;

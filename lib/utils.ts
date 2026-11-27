@@ -83,3 +83,42 @@ export function sequenceFromId(id: string) {
   const match = id.match(/-(\d{3})$/);
   return match ? Number(match[1]) : 0;
 }
+
+const EARTH_RADIUS_M = 6_371_008.8;
+
+/**
+ * Approximate area of a [lat, lng] ring in square metres. Coordinates are
+ * projected around the ring's mean latitude, which is accurate enough for
+ * the small campaign sites drawn on the map.
+ */
+export function polygonAreaSqm(points: [number, number][]): number {
+  if (points.length < 3) return 0;
+  const meanLat = points.reduce((sum, p) => sum + p[0], 0) / points.length;
+  const metresPerDegLat = (Math.PI * EARTH_RADIUS_M) / 180;
+  const metresPerDegLng = metresPerDegLat * Math.cos((meanLat * Math.PI) / 180);
+  let twiceArea = 0;
+  for (let i = 0; i < points.length; i++) {
+    const [lat1, lng1] = points[i];
+    const [lat2, lng2] = points[(i + 1) % points.length];
+    const x1 = lng1 * metresPerDegLng;
+    const y1 = lat1 * metresPerDegLat;
+    const x2 = lng2 * metresPerDegLng;
+    const y2 = lat2 * metresPerDegLat;
+    twiceArea += x1 * y2 - x2 * y1;
+  }
+  return Math.abs(twiceArea) / 2;
+}
+
+/** Human-readable site area: hectares for large sites, m² otherwise. */
+export function formatArea(areaSqm?: number, lang: Lang = "ar") {
+  if (!areaSqm || areaSqm <= 0) return "—";
+  const locale = lang === "ar" ? "ar-DZ" : "en-US";
+  const num = (value: number, digits = 0) =>
+    new Intl.NumberFormat(locale, { maximumFractionDigits: digits }).format(
+      value,
+    );
+  if (areaSqm >= 10_000) {
+    return `${num(areaSqm / 10_000, 2)} ${lang === "ar" ? "هكتار" : "ha"}`;
+  }
+  return `${num(Math.round(areaSqm))} m²`;
+}

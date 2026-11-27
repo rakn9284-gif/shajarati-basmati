@@ -1,10 +1,10 @@
 -- ============================================================
--- شجرتي بصمتي · SHAJARATI BASMATI — Supabase schema
+-- حملتي · HAMALATI — Supabase schema
 -- تشغيل: Supabase Dashboard > SQL Editor > New query > الصق الكامل > Run
 -- ============================================================
 
 -- ------------------------------------------------------------
--- 1) أشجار — walked-in QR passport rows (id =matrix id, e.g. SKK-COL-043)
+-- 1) أشجار — care passport rows within campaigns (id = matrix id, e.g. SKK-COL-043)
 -- ------------------------------------------------------------
 create table if not exists public.trees (
   id             text primary key,
@@ -46,9 +46,17 @@ create table if not exists public.campaigns (
   species_en     text,
   lat            double precision not null check (lat between -90 and 90),
   lng            double precision not null check (lng between -180 and 180),
+  organizer      text,
+  polygon        jsonb,
+  area_sqm       double precision,
   status         text not null default 'active' check (status in ('planned','active','completed')),
   created_at     date not null default current_date
 );
+
+-- ترقية قاعدة بيانات موجودة: حدود الموقع والجهة المنظمة والمساحة
+alter table public.campaigns add column if not exists organizer text;
+alter table public.campaigns add column if not exists polygon jsonb;
+alter table public.campaigns add column if not exists area_sqm double precision;
 
 -- ------------------------------------------------------------
 -- 3) المجلة — منشورات

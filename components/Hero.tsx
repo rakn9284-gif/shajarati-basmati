@@ -70,17 +70,17 @@ export default function Hero() {
           {user && (
             <p className="mt-4 text-[12px] font-medium text-mint/80">
               {t(
-                `أهلاً ${user.firstName}، بصمتك اليوم تصنع ظلاً غداً.`,
-                `Welcome ${user.firstName}, your mark today is tomorrow's shade.`,
+                `أهلاً ${user.firstName}، حملتك اليوم تصنع ظلاً غداً.`,
+                `Welcome ${user.firstName}, your campaign today makes shade tomorrow.`,
               )}
             </p>
           )}
 
           <h1 className="mt-3 max-w-[640px] font-display text-[28px] font-extrabold leading-[1.28] tracking-tight sm:text-[38px] lg:text-[45px]">
-            {t("لا نغرس شجرة ونرحل،", "We don't plant a tree and leave,")}
+            {t("نُدير حملات التشجير،", "We manage planting campaigns,")}
             <br className="hidden sm:block" />{" "}
             <span className="relative inline-block text-mint">
-              {t("بل نتابعها حتى تنمو", "we follow it until it grows")}
+              {t("ونوثّق مواقعها حتى تنمو", "and document their sites as they grow")}
               <svg
                 viewBox="0 0 240 12"
                 className="absolute -bottom-2 start-0 h-2.5 w-full max-w-full text-brand-soft/70"
@@ -100,8 +100,8 @@ export default function Hero() {
 
           <p className="mt-5 max-w-[540px] text-[13px] leading-relaxed text-white/65 sm:text-sm">
             {t(
-              "منصة رقمية موحّدة لمتابعة كل شجرة في ولاية سكيكدة: جواز رقمي، خرائط تفاعلية، سقاية موثقة، وحملات تشجير منسقة بين 38 بلدية.",
-              "One digital platform to track every tree in Skikda: a digital passport, interactive maps, verified watering, and coordinated planting campaigns across 38 municipalities.",
+              "منصة رقمية موحّدة لإدارة حملات التشجير الجماعية في ولاية سكيكدة: حدود المواقع على الخريطة، رمز QR واحد لكل حملة، إحصائيات الأشجار والأنواع، وتقارير منسقة بين 38 بلدية.",
+              "One digital platform to manage group planting campaigns in Skikda: site boundaries on the map, one QR code per campaign, tree and species statistics, and coordinated reports across 38 municipalities.",
             )}
           </p>
 
@@ -111,7 +111,7 @@ export default function Hero() {
               className="group inline-flex items-center gap-2 rounded-full bg-mint px-5 py-3 text-[13px] font-bold text-forest shadow-[0_16px_36px_-18px_rgba(184,230,206,0.9)] transition hover:bg-white"
             >
               <ScanLine className="size-4.5" />
-              {t("امسح رمز الـ QR", "Scan QR code")}
+              {t("امسح رمز الموقع", "Scan site QR")}
               <ArrowLeft className="size-4 transition group-hover:-translate-x-0.5 rtl:rotate-0 ltr:rotate-180" />
             </button>
             <button
@@ -201,9 +201,9 @@ export default function Hero() {
             </span>
             <div className="text-[10px] leading-tight">
               <p className="font-mono text-[11px] font-bold tracking-wide text-white">
-                SKK-COL-043
+                CMP-SKK-001
               </p>
-              <p className="text-white/55">{t("جواز الشجرة الرقمي", "digital tree passport")}</p>
+              <p className="text-white/55">{t("رمز موقع الحملة", "campaign site QR")}</p>
             </div>
           </div>
 

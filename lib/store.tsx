@@ -109,6 +109,7 @@ type AppContextValue = {
   municipalities: Municipality[];
   stats: Stats;
   findTree: (id: string) => Tree | undefined;
+  findCampaign: (id: string) => Campaign | undefined;
 
   /* RBAC helpers */
   isAdmin: boolean;
@@ -140,6 +141,7 @@ type AppContextValue = {
   waterTree: (treeId: string) => boolean;
   escalateTree: (treeId: string, note: string) => void;
   createCampaign: (input: CampaignInput) => string | null;
+  updateCampaign: (id: string, patch: Partial<Campaign>) => boolean;
   addTree: (input: TreeInput) => string | null;
   savePost: (input: PostInput, postId?: string) => void;
   deletePost: (postId: string) => void;
@@ -175,6 +177,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     typeof window !== "undefined" && isCloudConfigured() ? "checking" : "offline",
   );
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const deepLinkHandled = useRef<string | null>(null);
 
   useEffect(() => {
     try {
@@ -292,6 +295,19 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     if (!hydrated) return;
     if (isCloudConfigured()) void refreshCloud();
   }, [hydrated, refreshCloud]);
+
+  /* QR الميداني يفتح الرابط ?campaign=<id> — نعرض بطاقة الموقع فور توفر الحملات
+     (محلياً أو بعد اكتمال المزامنة مع السحابة). */
+  useEffect(() => {
+    if (!hydrated || typeof window === "undefined") return;
+    const campaignId = new URLSearchParams(window.location.search).get(
+      "campaign",
+    );
+    if (!campaignId || deepLinkHandled.current === campaignId) return;
+    if (!campaigns.some((c) => c.id === campaignId)) return;
+    deepLinkHandled.current = campaignId;
+    setModal({ type: "site", campaignId });
+  }, [hydrated, campaigns]);
 
   /* 📡 مستمع لحظي لجدول users — تصل الترقية أو التعديلات لهاتف المستهدف
      فورًا عبر Realtime دون انتظار إعادة تحميل الصفحة. */
@@ -444,6 +460,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     [trees],
   );
 
+  const findCampaign = useCallback(
+    (id: string) => campaigns.find((c) => c.id === id),
+    [campaigns],
+  );
+
   const pushActivity = useCallback(
     (activity: Omit<Activity, "id" | "at"> & { treeId?: string }) => {
       const row = activityRowOf(activity);
@@ -578,8 +599,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       setModal(null);
       setViewState("dashboard");
       notify(
-        "تم إنشاء حسابك التطوعي بنجاح. أهلاً بك في شجرتي بصمتي!",
-        "Your volunteer account is ready. Welcome to Shajarati Basmati!",
+        "تم إنشاء حسابك التطوعي بنجاح. أهلاً بك في حملتي!",
+        "Your volunteer account is ready. Welcome to Hamalati!",
       );
       return true;
     },
@@ -800,6 +821,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         speciesEn: input.speciesEn,
         lat: input.lat,
         lng: input.lng,
+        organizer: input.organizer.trim() || fullName(user),
+        polygon:
+          input.polygon && input.polygon.length >= 3
+            ? input.polygon
+            : undefined,
+        areaSqm: input.areaSqm,
         status: "active",
         createdAt: todayISO(),
       };
@@ -826,12 +853,53 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           ),
         );
       notify(
-        `تم إنشاء الحملة وتسجيل ${count} شجرة برموز QR جاهزة للطباعة.`,
-        `Campaign created with ${count} trees and printable QR codes.`,
+        "تم إنشاء موقع الحملة برمز QR واحد جاهز للطباعة.",
+        "Campaign site created with one printable QR code.",
       );
       return campaignId;
     },
     [user, notify, nextSequence, pushActivity],
+  );
+
+  /** تحديث بيانات الحملة أو حدود موقعها من نموذج التعديل. */
+  const updateCampaign = useCallback(
+    (id: string, patch: Partial<Campaign>) => {
+      const existing = campaigns.find((c) => c.id === id);
+      if (!existing) {
+        notify("لم يتم العثور على الحملة.", "Campaign not found.", "error");
+        return false;
+      }
+      const allowed =
+        user?.role === "state_admin" ||
+        (user?.role === "municipality_admin" &&
+          user.municipalityId === existing.municipalityId);
+      if (!allowed) {
+        notify(
+          "تعديل الحملات متاح لأدمن البلدية أو الولاية فقط.",
+          "Editing campaigns is reserved for municipality or state admins.",
+          "error",
+        );
+        return false;
+      }
+      const updated: Campaign = { ...existing, ...patch, id: existing.id };
+      setCampaigns((prev) =>
+        prev.map((c) => (c.id === id ? updated : c)),
+      );
+      void cloudUpsertCampaign(updated)
+        .then(({ error }) => {
+          if (error) throw error;
+        })
+        .catch(() =>
+          notify(
+            "تم حفظ التعديلات محلياً — سيُزامَن مع السحابة عند عودة الاتصال.",
+            "Changes saved locally — they will sync when the cloud is back.",
+            "info",
+          ),
+        );
+      notify("تم حفظ تعديلات الحملة.", "Campaign changes saved.");
+      return true;
+    },
+    [campaigns, user, notify],
   );
 
   const addTree = useCallback(
@@ -866,6 +934,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       const speciesObj = getSpecies(input.speciesAr, input.speciesEn);
       const newTree: Tree = {
         id,
+        campaignId: input.campaignId,
         municipalityId: input.municipalityId,
         speciesAr: input.speciesAr,
         speciesEn: input.speciesEn,
@@ -1136,6 +1205,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       municipalities,
       stats,
       findTree,
+      findCampaign,
       isAdmin,
       isStateAdmin,
       canManagePost,
@@ -1152,6 +1222,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       waterTree,
       escalateTree,
       createCampaign,
+      updateCampaign,
       addTree,
       savePost,
       deletePost,
@@ -1180,6 +1251,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       municipalities,
       stats,
       findTree,
+      findCampaign,
       isAdmin,
       isStateAdmin,
       canManagePost,
@@ -1196,6 +1268,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       waterTree,
       escalateTree,
       createCampaign,
+      updateCampaign,
       addTree,
       savePost,
       deletePost,

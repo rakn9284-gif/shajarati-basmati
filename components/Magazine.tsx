@@ -116,7 +116,7 @@ export function PostModal({ postId }: { postId: string }) {
     .slice(0, 2);
 
   const share = async () => {
-    const text = `${lang === "ar" ? post.titleAr : post.titleEn} — ${t("شجرتي بصمتي", "Shajarati Basmati")}`;
+    const text = `${lang === "ar" ? post.titleAr : post.titleEn} — ${t("حملتي", "Hamalati")}`;
     try {
       if (navigator.share) {
         await navigator.share({ title: post.titleAr, text });
@@ -275,8 +275,8 @@ export function PostModal({ postId }: { postId: string }) {
             <span className="flex items-center gap-1.5 text-[9.5px] text-charcoal/45">
               <Sparkles className="size-3.5 text-brand" />
               {t(
-                "مقال من مجلة شجرتي بصمتي المجتمعية.",
-                "A story from the Shajarati Basmati community magazine.",
+                "مقال من مجلة حملتي المجتمعية.",
+                "A story from the Hamalati community magazine.",
               )}
             </span>
             <button
@@ -467,8 +467,8 @@ export function ComposePost({ postId }: { postId?: string }) {
           : t("نشر تحديث جديد", "Publish a new update")
       }
       subtitle={t(
-        "شارك خبراً أو صورة أو نصيحة مع مجتمع شجرتي بصمتي.",
-        "Share a story, photo or tip with the Shajarati Basmati community.",
+        "شارك خبراً أو صورة أو نصيحة مع مجتمع حملتي.",
+        "Share a story, photo or tip with the Hamalati community.",
       )}
       icon={<Newspaper className="size-5" />}
       size="lg"
@@ -1059,8 +1059,8 @@ export default function Magazine() {
         <span className="flex items-center gap-1.5">
           <Newspaper className="size-3.5 text-brand" />
           {t(
-            "مجلة شجرتي بصمتي · محتوى مجتمعي من ولاية سكيكدة",
-            "Shajarati Basmati magazine · community content from Skikda Wilaya",
+            "مجلة حملتي · محتوى مجتمعي من ولاية سكيكدة",
+            "Hamalati magazine · community content from Skikda Wilaya",
           )}
         </span>
         <button

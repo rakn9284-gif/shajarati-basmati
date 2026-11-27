@@ -251,7 +251,7 @@ export function TreeEmblem({ className }: { className?: string }) {
       viewBox="0 0 320 320"
       className={cn("h-auto w-full max-w-full object-contain", className)}
       role="img"
-      aria-label="Shajarati Basmati tree emblem"
+      aria-label="Hamalati tree emblem"
     >
       <defs>
         <radialGradient id={`glow-${uid}`} cx="50%" cy="46%" r="52%">

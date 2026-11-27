@@ -265,8 +265,8 @@ function QuickActions() {
 
   const actions = [
     {
-      label: t("مسح رمز QR", "Scan QR"),
-      sub: t("افتح جواز الشجرة", "Open a tree passport"),
+      label: t("مسح رمز موقع", "Scan site QR"),
+      sub: t("افتح بطاقة الحملة", "Open a campaign site card"),
       icon: ScanLine,
       color: "#16865B",
       bg: "#E4F4EA",
@@ -282,7 +282,7 @@ function QuickActions() {
     },
     {
       label: t("تسجيل شجرة", "Register tree"),
-      sub: t("جواز رقمي فوري", "Instant digital passport"),
+      sub: t("لإحصائيات الحملة والرعاية", "For campaign stats & care"),
       icon: Sprout,
       color: "#0F6B47",
       bg: "#E4F4EA",
@@ -503,12 +503,12 @@ function CampaignsCard() {
                 </div>
                 <button
                   onClick={() =>
-                    openModal({ type: "print", campaignId: campaign.id })
+                    openModal({ type: "site", campaignId: campaign.id })
                   }
                   className="inline-flex items-center gap-1 rounded-full bg-white px-2 py-1 text-[9.5px] font-semibold text-forest ring-1 ring-line transition hover:bg-mint-soft"
                 >
                   <QrCode className="size-3" />
-                  {t("رموز QR", "QR codes")}
+                  {t("بطاقة الموقع", "Site card")}
                 </button>
               </div>
             </article>

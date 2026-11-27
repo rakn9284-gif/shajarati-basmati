@@ -134,27 +134,27 @@ export default function AuthModal({ initialMode }: { initialMode: "login" | "sig
                 <Sprout className="size-5" />
               </span>
               <div>
-                <p className="font-display text-base font-extrabold">شجرتي بصمتي</p>
-                <p className="text-[9px] text-mint/70">SHAJARATI BASMATI</p>
+                <p className="font-display text-base font-extrabold">حملتي</p>
+                <p className="text-[9px] text-mint/70">HAMALATI</p>
               </div>
             </div>
             <div className="mx-auto mt-4 max-w-[210px]">
               <TreeEmblem className="max-h-[180px]" />
             </div>
             <h3 className="mt-1 font-display text-[19px] font-extrabold leading-snug text-mint">
-              {t("كل شجرة لها هوية، وكل بصمة تصنع ظلاً.", "Every tree has an identity. Every mark makes shade.")}
+              {t("كل حملة لها موقع، وكل موقع يروي قصة نمو.", "Every campaign has a site, and every site tells a growth story.")}
             </h3>
             <p className="mt-2 text-[11px] leading-relaxed text-white/55">
               {t(
-                "انضم إلى مجتمع بيئي يتابع كل شجرة من الغرس إلى النمو، في 38 بلدية بولاية سكيكدة.",
-                "Join an environmental community tracking every tree from planting to growth across 38 Skikda municipalities.",
+                "انضم إلى منصة تُدير حملات التشجير الجماعية وتوثّق مواقع الغرس ونموها في 38 بلدية بولاية سكيكدة.",
+                "Join a platform managing group planting campaigns and documenting sites and their growth across 38 Skikda municipalities.",
               )}
             </p>
           </div>
 
           <div className="relative mt-6 space-y-2.5">
             {[
-              t("جواز رقمي فريد لكل شجرة", "A unique digital passport for every tree"),
+              t("رمز QR واحد لكل موقع تشجير", "One QR code for every planting site"),
               t("توثيق السقاية والرعاية ميدانياً", "Verified watering and field care"),
               t("خرائط وتقارير لبلديتك", "Maps and reports for your municipality"),
             ].map((item) => (
@@ -186,7 +186,7 @@ export default function AuthModal({ initialMode }: { initialMode: "login" | "sig
               </h2>
               <p className="text-[11px] text-charcoal/45">
                 {mode === "login"
-                  ? t("أهلاً بعودتك، بصمتك تنتظرك.", "Welcome back, your mark is waiting.")
+                  ? t("أهلاً بعودتك، حملاتك تنتظرك.", "Welcome back, your campaigns are waiting.")
                   : t("دقيقة واحدة تفصلك عن أول شجرة.", "One minute away from your first tree.")}
               </p>
             </div>
@@ -228,7 +228,7 @@ export default function AuthModal({ initialMode }: { initialMode: "login" | "sig
                     dir="ltr"
                     value={loginEmail}
                     onChange={(e) => setLoginEmail(e.target.value)}
-                    placeholder="name@shajarati.dz"
+                    placeholder="name@hamalati.dz"
                     className="w-full rounded-2xl border border-line bg-white py-2.5 pe-3.5 ps-10 text-start text-[12px] text-charcoal outline-none transition focus:border-brand focus:ring-4 focus:ring-brand/10"
                     autoComplete="email"
                   />

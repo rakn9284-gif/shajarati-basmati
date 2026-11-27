@@ -148,7 +148,7 @@ export default function Header() {
           <button
             onClick={() => go("dashboard")}
             className="group flex shrink-0 items-center gap-2.5 text-start"
-            aria-label={t("شجرتي بصمتي — الصفحة الرئيسية", "Shajarati Basmati — Home")}
+            aria-label={t("حملتي — الصفحة الرئيسية", "Hamalati — Home")}
           >
             <span className="relative grid size-11 place-items-center rounded-2xl bg-forest text-mint shadow-[0_10px_24px_-12px_rgba(18,59,42,0.8)] transition group-hover:rotate-3">
               <Sprout className="size-6" strokeWidth={1.9} />
@@ -156,12 +156,12 @@ export default function Header() {
             </span>
             <span className="leading-tight">
               <span className="block font-display text-[17px] font-extrabold tracking-tight text-forest sm:text-lg">
-                {t("شجرتي بصمتي", "Shajarati Basmati")}
+                {t("حملتي", "Hamalati")}
               </span>
               <span className="mt-0.5 hidden max-w-[230px] truncate text-[10px] font-medium text-charcoal/50 md:block">
                 {t(
-                  "لا نغرس شجرة ونرحل، بل نتابعها حتى تنمو",
-                  "Every tree has an identity",
+                  "نُدير حملات التشجير ونوثّق مواقع الغرس",
+                  "Managing campaigns, documenting sites",
                 )}
               </span>
             </span>
@@ -349,7 +349,7 @@ export default function Header() {
                           className="flex w-full items-center gap-2.5 rounded-2xl px-3 py-2.5 text-[12px] font-medium text-charcoal/75 hover:bg-cream"
                         >
                           <UserRound className="size-4 text-brand" />
-                          {t("حسابي وجوازات أشجاري", "My profile & tree passports")}
+                          {t("حسابي ومساهماتي", "My profile & contributions")}
                         </button>
                         <button
                           onClick={() => {
@@ -359,7 +359,7 @@ export default function Header() {
                           className="flex w-full items-center gap-2.5 rounded-2xl px-3 py-2.5 text-[12px] font-medium text-charcoal/75 hover:bg-cream"
                         >
                           <ScanLine className="size-4 text-brand" />
-                          {t("مسح رمز QR", "Scan a QR code")}
+                          {t("مسح رمز موقع", "Scan a site QR")}
                         </button>
                         {user.role !== "volunteer" && (
                           <button
@@ -433,7 +433,7 @@ export default function Header() {
                 </span>
                 <div>
                   <p className="font-display text-base font-extrabold text-forest">
-                    {t("شجرتي بصمتي", "Shajarati Basmati")}
+                    {t("حملتي", "Hamalati")}
                   </p>
                   <p className="text-[10px] text-charcoal/45">
                     {t("سكيكدة · 38 بلدية", "Skikda · 38 municipalities")}

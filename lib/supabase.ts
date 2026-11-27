@@ -60,6 +60,9 @@ interface CampaignRow {
   species_en: string | null;
   lat: number;
   lng: number;
+  organizer: string | null;
+  polygon: [number, number][] | null;
+  area_sqm: number | null;
   status: Campaign["status"];
   created_at: string;
 }
@@ -173,6 +176,9 @@ export function toCampaign(r: CampaignRow): Campaign {
     speciesEn: r.species_en ?? "",
     lat: r.lat,
     lng: r.lng,
+    organizer: r.organizer ?? undefined,
+    polygon: r.polygon ?? undefined,
+    areaSqm: r.area_sqm ?? undefined,
     status: r.status,
     createdAt: r.created_at,
   };
@@ -192,6 +198,9 @@ export const campaignRowOf = (c: Campaign): CampaignRow => ({
   species_en: c.speciesEn || null,
   lat: c.lat,
   lng: c.lng,
+  organizer: c.organizer ?? null,
+  polygon: c.polygon ?? null,
+  area_sqm: c.areaSqm ?? null,
   status: c.status,
   created_at: c.createdAt,
 });

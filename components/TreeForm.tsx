@@ -19,7 +19,7 @@ import { cn, pad3, sequenceFromId, todayISO } from "@/lib/utils";
 import { Badge, Modal } from "./ui";
 import { TreeArt } from "./TreeArt";
 
-export default function TreeForm() {
+export default function TreeForm({ campaignId }: { campaignId?: string }) {
   const {
     t,
     lang,
@@ -32,10 +32,11 @@ export default function TreeForm() {
     activeMunicipality,
   } = useApp();
 
-  const defaultMuni =
-    user?.role === "municipality_admin" && user.municipalityId
+  const linkedCampaign = campaigns.find((c) => c.id === campaignId);
+  const defaultMuni = linkedCampaign?.municipalityId ??
+    (user?.role === "municipality_admin" && user.municipalityId
       ? user.municipalityId
-      : activeMunicipality ?? "skikda";
+      : activeMunicipality ?? "skikda");
 
   const [municipalityId, setMunicipalityId] = useState(defaultMuni);
   const [speciesAr, setSpeciesAr] = useState<string>(SPECIES[0].ar);
@@ -51,8 +52,12 @@ export default function TreeForm() {
   const muni = municipalityById(municipalityId) ?? getMunicipality("skikda");
   const muniLocked = user?.role === "municipality_admin";
 
-  const [lat, setLat] = useState(String(muni.lat));
-  const [lng, setLng] = useState(String(muni.lng));
+  const [lat, setLat] = useState(
+    String(linkedCampaign?.lat ?? muni.lat),
+  );
+  const [lng, setLng] = useState(
+    String(linkedCampaign?.lng ?? muni.lng),
+  );
 
   // Keep coordinates in sync when the municipality selector changes
   const onMunicipalityChange = (nextId: string) => {
@@ -124,6 +129,7 @@ export default function TreeForm() {
       return;
     }
     const id = addTree({
+      campaignId: linkedCampaign?.id,
       municipalityId,
       speciesAr: effectiveAr,
       speciesEn: effectiveEn,
@@ -146,17 +152,29 @@ export default function TreeForm() {
       open
       onClose={closeModal}
       title={t("تسجيل شجرة مفردة", "Register a single tree")}
-      subtitle={t(
-        "أصدر جوازاً رقمياً فورياً لشجرة واحدة مع إحداثياتها في المخطط.",
-        "Issue an instant digital passport for one tree with its layout coordinates.",
-      )}
+      subtitle={linkedCampaign
+        ? t(
+            `أضف شجرة إلى حملة «${lang === "ar" ? linkedCampaign.nameAr : linkedCampaign.nameEn}» لتُحتسب في إحصائياتها.`,
+            `Add a tree to "${lang === "ar" ? linkedCampaign.nameAr : linkedCampaign.nameEn}" so it counts toward campaign statistics.`,
+          )
+        : t(
+            "سجّل شجرة واحدة بإحداثياتها وموقعها في المخطط داخل سجل البلدية.",
+            "Register one tree with its coordinates and position in the layout within the municipality registry.",
+          )}
       icon={<TreePine className="size-5" />}
       size="lg"
       footer={
         <div className="flex items-center justify-between gap-2">
           <p className="hidden items-center gap-1.5 text-[10px] text-charcoal/40 sm:flex">
             <Info className="size-3.5 text-brand" />
-            {t("سيتم إصدار رمز QR تلقائياً.", "A QR code is generated automatically.")}
+            {t(
+              linkedCampaign
+                ? "ستُضاف الشجرة إلى إحصائيات الحملة."
+                : "سيُصدر جواز رقمي للعناية بالشجرة (بدون رمز QR).",
+              linkedCampaign
+                ? "The tree will be added to campaign statistics."
+                : "A digital passport is issued for care (no QR code).",
+            )}
           </p>
           <div className="flex gap-2">
             <button
@@ -428,8 +446,8 @@ export default function TreeForm() {
             </div>
             <p className="mt-1.5 text-[8.5px] text-charcoal/35">
               {t(
-                `الصف ${row} / العمود ${col} — يُستخدم لاسترجاع الرقم عند تلف الرمز.`,
-                `Row ${row} / Column ${col} — used to recover the ID if the tag is damaged.`,
+                `الصف ${row} / العمود ${col} — يحدد موضع الشجرة داخل مخطط الحملة.`,
+                `Row ${row} / Column ${col} — locates the tree within the campaign layout.`,
               )}
             </p>
           </div>

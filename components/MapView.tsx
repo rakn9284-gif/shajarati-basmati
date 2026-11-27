@@ -96,15 +96,22 @@ export default function MapView() {
           <LeafletMap
             municipalities={municipalities}
             trees={trees}
+            campaigns={campaigns}
             activeMunicipality={activeMunicipality}
             onSelectMunicipality={(id) => setActiveMunicipality(id)}
             onSelectTree={(treeId) => openModal({ type: "passport", treeId })}
+            onSelectCampaign={(campaignId) =>
+              openModal({ type: "site", campaignId })
+            }
           />
         </div>
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-line bg-white px-3.5 py-2 text-[9px] text-charcoal/45">
           <span className="inline-flex items-center gap-1.5">
             <MousePointerClick className="size-3 text-brand" />
-            {t("انقر بلدية لعرض أرقامها، وانقر شجرة لفتح جوازها.", "Click a municipality for its figures; click a tree to open its passport.")}
+            {t(
+              "انقر بلدية لعرض أرقامها، أو حدود موقع تشجير لفتح بطاقة الحملة.",
+              "Click a municipality for its figures, or a site boundary to open the campaign card.",
+            )}
           </span>
           <a
             href="https://www.openstreetmap.org/copyright"
@@ -140,10 +147,10 @@ export default function MapView() {
             if (!activeCampaign) return null;
             return (
               <button
-                onClick={() => openModal({ type: "print", campaignId: activeCampaign.id })}
+                onClick={() => openModal({ type: "site", campaignId: activeCampaign.id })}
                 className="rounded-full border border-line bg-white px-3 py-1.5 text-[10px] font-semibold text-forest hover:bg-mint-soft"
               >
-                {t("طباعة رموز QR", "Print QR codes")}
+                {t("بطاقة الموقع", "Site card")}
               </button>
             );
           })()}
