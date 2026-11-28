@@ -85,7 +85,7 @@ create table if not exists public.posts (
 );
 
 -- ------------------------------------------------------------
--- 4) المستخدمون — RBAC (state_admin / municipality_admin / volunteer)
+-- 4) المستخدمون — RBAC (super_admin / state_admin / municipality_admin / volunteer)
 -- ------------------------------------------------------------
 create table if not exists public.users (
   id             text primary key,
@@ -94,13 +94,18 @@ create table if not exists public.users (
   email          text not null unique,
   password       text not null,          -- MVP؛ الترحيل إلى Supabase Auth خطوة لاحقة
   role           text not null default 'volunteer'
-                 check (role in ('state_admin','municipality_admin','volunteer')),
+                 check (role in ('super_admin','state_admin','municipality_admin','volunteer')),
   municipality_id text,
   health_limitations text,
   joined_at      date not null default current_date,
   avatar_color   text not null default '#16865B',
   trees_watered  integer not null default 0
 );
+
+-- `state_admin` هو الاسم القديم لأدمن الولاية؛ `super_admin` الاسم الجديد.
+alter table public.users drop constraint if exists users_role_check;
+alter table public.users add constraint users_role_check
+  check (role in ('super_admin','state_admin','municipality_admin','volunteer'));
 
 -- ------------------------------------------------------------
 -- 5) الأنشطة — سجل ميداني مشترك (سقايات، غرس، تصعيد…)

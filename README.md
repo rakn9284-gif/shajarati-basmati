@@ -10,14 +10,14 @@ An Arabic-first, RTL platform for managing and documenting **group planting camp
 ## Features
 
 - **Zero baseline** — the platform starts with **0 trees, 0 campaigns, 0 posts and 0 accounts**. Every statistic, chart and municipality status is derived from the real persisted database; nothing is pre-seeded.
-- **One QR per campaign** — every planting site gets a single high-resolution QR code pointing to `?campaign=<id>`. Scanning it (or entering the code manually) opens a full site card: name, municipality, date, organizer, registered tree/species totals and site status.
-- **Site boundaries on the map** — campaign forms include a click-to-draw polygon editor (3+ points, clear/redraw) with approximate area in m² / hectares. Saved polygons render as translucent green boundaries on the main map; clicking one opens the site card.
+- **One QR per campaign** — every planting site gets a single high-resolution QR code pointing to a full HTTPS URL `/scan?code=<id>`. Scanning it with any phone camera, or entering the code manually, opens a full site card: name, municipality, date, organizer, registered tree/species totals and site status.
+- **Site boundary data** — campaign forms include a click-to-draw polygon editor (3+ points, clear/redraw) with approximate area in m² / hectares. Boundaries stay in the campaign record/sign; the mobile map shows clean emerald pins only.
 - **A4 field sign** — one printable A4 campaign sign with the حملتي logo, campaign name, municipality, date, organizer, totals, a large quiet-zone QR and the campaign code. Clean print styles hide all buttons and menus.
 - **Tree registration for statistics** — trees keep their sequential matrix ID (`SKK-COL-043`), species, row/column and care/watering log, but **no per-tree QR codes are generated**. They feed species statistics and the digital passport used for care tracking.
-- **Real interactive map** — Leaflet + OpenStreetMap centred on Skikda `[36.876, 6.906]`, with real commune boundaries (geoBoundaries DZA-ADM3) and live campaign site markers/polygons.
+- **Real interactive map** — Leaflet + OpenStreetMap centred on Skikda `[36.876, 6.906]`, with clean emerald campaign-site pins and no boundary polygons on the mobile map.
 - **38 Skikda municipalities** — real names, codes and centroid coordinates in every selector, view and report.
-- **Strict RBAC** — guests browse the public home in restricted view; volunteers can scan site QR codes, log *"سقيت اليوم"* waterings and use My Magazine; **Dashboard, tree/campaign creation, editing and printing are admin-only**; User Management is state-admin-only.
-- **Camera QR scanner** — live camera scanning with `BarcodeDetector` (plus a `jsQR` compatibility engine) and a manual campaign-code fallback. Scanned URLs with `?campaign=` are resolved automatically, and deep links open the site card directly.
+- **Strict RBAC** — guests and volunteers can publicly scan QR codes and view site/tree details; adding a campaign is restricted to Super Admin (`super_admin` / legacy `state_admin`) and Municipality Admin; creation, editing and printing remain admin-only; User Management is super-admin-only.
+- **Universal QR deep-linking** — printed signs encode a full HTTPS URL (`NEXT_PUBLIC_SITE_URL` or current origin: `/scan?code=<ID>`). The in-app scanner and native phone cameras both resolve `?code=`, `?id=` or legacy `?campaign=` to the campaign site card or tree passport without login.
 - **My Magazine** — admins publish stories with image uploads (≤ 1.5 MB), and can edit, hide/re-publish or delete posts within their scope; guests and volunteers read and like only.
 - **Bilingual UI** — Arabic by default with a full EN/AR toggle and RTL-first layout.
 - Produced by **نادي العقل الأخضر / Green Mind Club** (credited in the global footer).
@@ -99,7 +99,7 @@ npm start
 
 ## Key Interactions
 
-- **Scan site QR** — turn on the live camera, or type a campaign code such as `CMP-SKK-001` manually; a scanned `?campaign=` URL opens the card directly.
+- **Scan site QR** — turn on the live camera, or type a campaign code such as `CMP-SKK-001` manually; scanned `/scan?code=`, `?id=` or legacy `?campaign=` URLs open the card directly, with no login required.
 - **Add campaign** — wizard: campaign details (site centre, organizer, map polygon) → layout and spacing → review and create. Creating a campaign opens the printable A4 site sign.
 - **Open a site card** — from the map, a campaign list, the scanner or a deep link; shows stats, species mix, boundary info, QR and admin actions.
 - **Water a tree** — open a tree passport from the site card or map and press **سقيت اليوم**; the watering count, last-watered date, tree status and activity feed update.
@@ -153,7 +153,8 @@ lib/
   data.ts             # Species/status/role metadata + derived chart helpers
   municipalities.ts   # 38 communes, centroids and live computation
   skikda-communes.json
-  store.tsx           # Context, RBAC gating, actions and persistence, ?campaign= deep link
+  store.tsx           # Context, RBAC gating, actions, persistence and QR detail deep links
+  qr.ts               # Full HTTPS QR URLs + code extraction (?code/?id/?campaign)
   utils.ts            # Formatting, ID and polygon-area helpers
 supabase/
   schema.sql          # Tables + campaign organizer/polygon/area migrations
@@ -175,6 +176,6 @@ Typography: **IBM Plex Sans Arabic** for UI, with a Tajawal-style display feel.
 
 - Supabase is the source of truth; the browser cache keeps the UI usable offline.
 - Positions of users other than the initial state mandate will be reflected once role management is used.
-- Campaign QR codes encode `?campaign=<id>`; the printable sign is optimised for A4 portrait.
+- Campaign QR codes encode a full HTTPS URL `/scan?code=<id>` (configurable via `NEXT_PUBLIC_SITE_URL`); the printable sign is optimised for A4 portrait.
 - Site area is an estimate computed from the drawn polygon around its mean latitude.
 - Map attribution is shown on the map panel; published photos are stored as data URLs (≤ 1.5 MB).

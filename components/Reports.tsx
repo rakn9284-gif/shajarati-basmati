@@ -23,7 +23,12 @@ import {
   Users,
 } from "lucide-react";
 import { useApp } from "@/lib/store";
-import { monthlyPlanting, speciesDistribution, STATUS_META } from "@/lib/data";
+import {
+  isSuperAdminRole,
+  monthlyPlanting,
+  speciesDistribution,
+  STATUS_META,
+} from "@/lib/data";
 import { STATUS_COLORS } from "@/lib/municipalities";
 import type { MunicipalityStatus } from "@/lib/types";
 import { downloadCSV, formatNumber } from "@/lib/utils";
@@ -57,7 +62,7 @@ export default function Reports() {
   const [status, setStatus] = useState<"all" | MunicipalityStatus>("all");
 
   const scope =
-    user && user.role !== "state_admin" && user.municipalityId
+    user && !isSuperAdminRole(user.role) && user.municipalityId
       ? municipalities.find((m) => m.id === user.municipalityId) ?? null
       : null;
 
@@ -74,7 +79,7 @@ export default function Reports() {
 
   const scopedTrees = useMemo(
     () =>
-      !user || user.role === "state_admin"
+      !user || isSuperAdminRole(user.role)
         ? trees
         : trees.filter((tr) => tr.municipalityId === user.municipalityId),
     [trees, user],
@@ -278,7 +283,7 @@ export default function Reports() {
             <Badge tone="white">
               {t("آخر تحديث: أكتوبر 2026", "Updated: October 2026")}
             </Badge>
-            {user?.role === "state_admin" && (
+            {isSuperAdminRole(user?.role) && (
               <Badge tone="white">
                 {t("صلاحية أدمن الولاية", "State admin access")}
               </Badge>

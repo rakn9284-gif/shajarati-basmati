@@ -911,7 +911,7 @@ export default function GridSystem({ campaignId }: { campaignId?: string }) {
                   </div>
                   <div className="min-w-0">
                     <p className="font-mono text-[10.5px] font-bold text-forest" dir="ltr">
-                      ?campaign=…
+                      /scan?code=…
                     </p>
                     <p className="mt-0.5 text-[9px] leading-snug text-charcoal/45">
                       {t(

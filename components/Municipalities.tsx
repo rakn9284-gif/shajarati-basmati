@@ -24,7 +24,7 @@ import { useApp } from "@/lib/store";
 import {
   STATUS_COLORS,
 } from "@/lib/municipalities";
-import { STATUS_META } from "@/lib/data";
+import { isSuperAdminRole, STATUS_META } from "@/lib/data";
 import {
   downloadCSV,
   formatDate,
@@ -98,7 +98,7 @@ export default function Municipalities() {
   const canManage =
     !!user &&
     !!active &&
-    (user.role === "state_admin" ||
+    (isSuperAdminRole(user.role) ||
       (user.role === "municipality_admin" && user.municipalityId === active.id));
 
   const newCampaign = () => {

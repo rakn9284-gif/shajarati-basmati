@@ -10,7 +10,7 @@ import {
   Users,
 } from "lucide-react";
 import { useApp } from "@/lib/store";
-import { ROLE_META } from "@/lib/data";
+import { isSuperAdminRole, ROLE_META } from "@/lib/data";
 import { formatDate, formatNumber } from "@/lib/utils";
 import { Avatar, Badge, SectionHeading } from "./ui";
 
@@ -19,7 +19,7 @@ export default function UserManagement() {
   const [query, setQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState<"all" | "volunteer" | "municipality_admin">("all");
 
-  const isAdmin = user?.role === "state_admin";
+  const isAdmin = isSuperAdminRole(user?.role);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();

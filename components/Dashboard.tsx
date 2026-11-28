@@ -27,7 +27,7 @@ import {
 import { useApp } from "@/lib/store";
 import { cn, formatNumber, formatShortDate, relativeTime } from "@/lib/utils";
 import { getMunicipality, municipalityName } from "@/lib/municipalities";
-import { STATUS_META, monthlyPlanting } from "@/lib/data";
+import { isSuperAdminRole, STATUS_META, monthlyPlanting } from "@/lib/data";
 import { Badge, Progress, SectionHeading, StatusPill } from "./ui";
 import { TreeArt } from "./TreeArt";
 import Hero from "./Hero";
@@ -516,7 +516,7 @@ function CampaignsCard() {
         })}
       </div>
 
-      {user?.role === "state_admin" && (
+      {isSuperAdminRole(user?.role) && (
         <button
           onClick={() => openModal({ type: "campaign" })}
           className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-2xl border border-dashed border-brand/30 bg-mint-soft/40 py-2.5 text-[11px] font-semibold text-brand transition hover:bg-mint-soft"

@@ -1,6 +1,10 @@
 export type Lang = "ar" | "en";
 
-export type Role = "state_admin" | "municipality_admin" | "volunteer";
+export type Role =
+  | "super_admin"
+  | "state_admin"
+  | "municipality_admin"
+  | "volunteer";
 
 export type TreeStatus = "stable" | "monitoring" | "risk" | "critical";
 
