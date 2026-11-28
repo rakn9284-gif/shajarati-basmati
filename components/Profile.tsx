@@ -22,7 +22,7 @@ import {
   X,
 } from "lucide-react";
 import { useApp } from "@/lib/store";
-import { ROLE_META } from "@/lib/data";
+import { isSuperAdminRole, ROLE_META } from "@/lib/data";
 import {
   getMunicipality,
   municipalityName,
@@ -206,7 +206,7 @@ export default function Profile() {
   const role = ROLE_META[user.role];
   const muni = getMunicipality(user.municipalityId);
   const RoleIcon =
-    user.role === "state_admin"
+    isSuperAdminRole(user.role)
       ? ShieldCheck
       : user.role === "municipality_admin"
         ? Building2

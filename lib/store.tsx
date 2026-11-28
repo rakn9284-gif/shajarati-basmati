@@ -26,9 +26,12 @@ import type {
 } from "./types";
 import {
   getSpecies,
+  isPrivilegedRole,
+  isSuperAdminRole,
   ADMIN_EMAIL,
   ADMIN_PASSWORD,
 } from "./data";
+import { qrCodeFromValue } from "./qr";
 import { computeMunicipalities, municipalityById } from "./municipalities";
 import { pad3, sequenceFromId, todayISO } from "./utils";
 import {
@@ -296,18 +299,29 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     if (isCloudConfigured()) void refreshCloud();
   }, [hydrated, refreshCloud]);
 
-  /* QR الميداني يفتح الرابط ?campaign=<id> — نعرض بطاقة الموقع فور توفر الحملات
-     (محلياً أو بعد اكتمال المزامنة مع السحابة). */
+  /* QR الميداني يفتح /scan?code=<id> — نعرض بطاقة الموقع أو جواز الشجرة
+     فور توفر البيانات محلياً أو بعد اكتمال المزامنة مع السحابة. */
   useEffect(() => {
     if (!hydrated || typeof window === "undefined") return;
-    const campaignId = new URLSearchParams(window.location.search).get(
-      "campaign",
-    );
-    if (!campaignId || deepLinkHandled.current === campaignId) return;
-    if (!campaigns.some((c) => c.id === campaignId)) return;
-    deepLinkHandled.current = campaignId;
-    setModal({ type: "site", campaignId });
-  }, [hydrated, campaigns]);
+    const params = new URLSearchParams(window.location.search);
+    const raw = params.get("code") ?? params.get("id") ?? params.get("campaign");
+    if (!raw) return;
+    const code = qrCodeFromValue(raw);
+    if (!code || deepLinkHandled.current === code) return;
+
+    const upper = code.toUpperCase();
+    const campaign = campaigns.find((c) => c.id.toUpperCase() === upper);
+    if (campaign) {
+      deepLinkHandled.current = code;
+      setModal({ type: "site", campaignId: campaign.id });
+      return;
+    }
+    const tree = trees.find((t) => t.id.toUpperCase() === upper);
+    if (tree) {
+      deepLinkHandled.current = code;
+      setModal({ type: "passport", treeId: tree.id });
+    }
+  }, [hydrated, campaigns, trees]);
 
   /* 📡 مستمع لحظي لجدول users — تصل الترقية أو التعديلات لهاتف المستهدف
      فورًا عبر Realtime دون انتظار إعادة تحميل الصفحة. */
@@ -349,13 +363,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     };
   }, [hydrated]);
 
-  const isAdmin = !!user && user.role !== "volunteer";
-  const isStateAdmin = user?.role === "state_admin";
+  const isAdmin = isPrivilegedRole(user?.role);
+  const isStateAdmin = isSuperAdminRole(user?.role);
 
   const canManagePost = useCallback(
     (post: Post) => {
       if (!user) return false;
-      if (user.role === "state_admin") return true;
+      if (isSuperAdminRole(user.role)) return true;
       if (
         user.role === "municipality_admin" &&
         user.municipalityId &&
@@ -390,15 +404,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     (next: ModalState) => {
       if (!next) {
         setModal(null);
-        return;
-      }
-      if (next.type === "scanner" && !user) {
-        notify(
-          "سجّل الدخول أو أنشئ حساباً متطوعاً لاستخدام الماسح.",
-          "Sign in or create a volunteer account to use the scanner.",
-          "info",
-        );
-        setModal({ type: "auth", mode: "login" });
         return;
       }
       if (
@@ -448,7 +453,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       needsAttention: trees.filter(
         (tr) => tr.status === "risk" || tr.status === "critical",
       ).length,
-      volunteers: users.filter((u) => u.role !== "state_admin").length,
+      volunteers: users.filter((u) => !isSuperAdminRole(u.role)).length,
       survivalRate: totalTrees ? Math.round((alive / totalTrees) * 100) : 0,
       waterings: trees.reduce((sum, tr) => sum + tr.waterings, 0),
       campaigns: campaigns.length,
@@ -740,7 +745,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const createCampaign = useCallback(
     (input: CampaignInput) => {
-      if (!user || user.role !== "state_admin") {
+      if (!user || !isSuperAdminRole(user.role)) {
         if (
           !(
             user?.role === "municipality_admin" &&
@@ -870,7 +875,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         return false;
       }
       const allowed =
-        user?.role === "state_admin" ||
+        isSuperAdminRole(user?.role) ||
         (user?.role === "municipality_admin" &&
           user.municipalityId === existing.municipalityId);
       if (!allowed) {

@@ -2,11 +2,16 @@
 
 import Link from "next/link";
 import { Calendar, Camera, Leaf, MapPin, Plus, Trees, Users } from "lucide-react";
+import { isPrivilegedRole } from "@/lib/data";
 import { useApp } from "@/lib/store";
 import Header from "./Header";
 
 export default function MobileHome() {
-  const { stats } = useApp();
+  const { stats, user } = useApp();
+
+  // Add-campaign is strictly admin-only: Super Admin (or legacy state admin)
+  // and Municipality Admin. Volunteers and guests never see the CTA.
+  const canAddCampaign = isPrivilegedRole(user?.role);
 
   const successRate = stats.survivalRate || 100;
   const volunteerCount = stats.volunteers || 32;
@@ -82,13 +87,15 @@ export default function MobileHome() {
               <Camera className="size-4.5" />
               امسح رمز الموقع
             </Link>
-            <Link
-              href="/campaigns/new"
-              className="flex w-full items-center justify-center gap-2 rounded-full border border-emerald-300/50 bg-emerald-950/40 px-5 py-3 text-[12.5px] font-bold text-white backdrop-blur-sm transition hover:bg-emerald-950/60 active:scale-[0.99]"
-            >
-              <Plus className="size-4.5" />
-              إضافة حملة تشجير
-            </Link>
+            {canAddCampaign && (
+              <Link
+                href="/campaigns/new"
+                className="flex w-full items-center justify-center gap-2 rounded-full border border-emerald-300/50 bg-emerald-950/40 px-5 py-3 text-[12.5px] font-bold text-white backdrop-blur-sm transition hover:bg-emerald-950/60 active:scale-[0.99]"
+              >
+                <Plus className="size-4.5" />
+                إضافة حملة تشجير
+              </Link>
+            )}
           </div>
 
           {/* Embedded stats bar */}

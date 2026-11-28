@@ -11,7 +11,7 @@ import {
   TreePine,
 } from "lucide-react";
 import { useApp } from "@/lib/store";
-import { STATUS_META } from "@/lib/data";
+import { isSuperAdminRole, STATUS_META } from "@/lib/data";
 import { formatNumber } from "@/lib/utils";
 import { Badge, MiniMetric, Progress, StatusPill } from "./ui";
 
@@ -50,7 +50,7 @@ export default function MapView() {
 
   const canCreate =
     !!user &&
-    (user.role === "state_admin" ||
+    (isSuperAdminRole(user.role) ||
       (user.role === "municipality_admin" &&
         user.municipalityId === active.id));
 

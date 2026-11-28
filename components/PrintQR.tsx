@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { useApp } from "@/lib/store";
 import { getMunicipality } from "@/lib/municipalities";
+import { qrDeepLink } from "@/lib/qr";
 import { formatArea, formatDate, formatNumber, polygonAreaSqm } from "@/lib/utils";
 import { Modal } from "./ui";
 
@@ -61,11 +62,7 @@ export default function PrintQR({ campaignId }: { campaignId: string }) {
       : campaign.status === "completed"
         ? t("مكتملة", "Completed")
         : t("مخططة", "Planned");
-  const codePath = `?campaign=${encodeURIComponent(campaign.id)}`;
-  const campaignUrl =
-    typeof window !== "undefined"
-      ? `${window.location.origin}${window.location.pathname}${codePath}`
-      : codePath;
+  const campaignUrl = qrDeepLink(campaign.id);
 
   return (
     <Modal

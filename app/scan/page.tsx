@@ -2,17 +2,16 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { QrCode } from "lucide-react";
 import AppShell from "@/components/AppShell";
-import type { ModalState } from "@/lib/types";
+import ScanLauncher from "@/components/ScanLauncher";
 
 export const metadata: Metadata = {
   title: "مسح كو آر",
 };
 
-const SCAN_MODAL: ModalState = { type: "scanner" };
-
 export default function ScanPage() {
   return (
-    <AppShell initialModal={SCAN_MODAL}>
+    <AppShell>
+      <ScanLauncher />
       <div className="rounded-3xl border border-emerald-100 bg-white p-6 text-center shadow-sm">
         <span className="mx-auto grid size-14 place-items-center rounded-2xl bg-emerald-800 text-white">
           <QrCode className="size-7" />
@@ -21,7 +20,8 @@ export default function ScanPage() {
           ماسح رمز الموقع
         </h1>
         <p className="mt-2 text-[11px] leading-relaxed text-emerald-950/50">
-          وجّه الكاميرا نحو رمز الحملة أو أدخل رمزها يدوياً لفتح بطاقة الموقع.
+          وجّه الكاميرا نحو رمز الحملة أو الشجرة، أو افتح رابط QR مباشرة لعرض
+          التفاصيل والموقع ونمو الأشجار — بدون تسجيل دخول.
         </p>
         <Link
           href="/"

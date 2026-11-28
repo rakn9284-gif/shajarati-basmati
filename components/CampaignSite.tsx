@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { useApp } from "@/lib/store";
 import { getMunicipality } from "@/lib/municipalities";
+import { qrDeepLink } from "@/lib/qr";
 import {
   formatArea,
   formatDate,
@@ -88,11 +89,7 @@ export default function CampaignSite({ campaignId }: { campaignId: string }) {
     campaign.organizer?.trim() ||
     muni.adminName ||
     (lang === "ar" ? "ولاية سكيكدة" : "Skikda Wilaya");
-  const codePath = `?campaign=${encodeURIComponent(campaign.id)}`;
-  const codeUrl =
-    typeof window !== "undefined"
-      ? `${window.location.origin}${window.location.pathname}${codePath}`
-      : codePath;
+  const codeUrl = qrDeepLink(campaign.id);
 
   const copyCode = async () => {
     try {

@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { useApp } from "@/lib/store";
 import { municipalityName } from "@/lib/municipalities";
+import { qrCodeFromValue } from "@/lib/qr";
 import { formatDate } from "@/lib/utils";
 import { Badge, Modal } from "./ui";
 import type { Campaign } from "@/lib/types";
@@ -23,28 +24,21 @@ type BarcodeDetectorLike = {
   detect: (source: HTMLVideoElement) => Promise<{ rawValue: string }[]>;
 };
 
-/** Accepts plain campaign IDs as well as scanned URLs containing ?campaign=. */
-function campaignCodeOf(raw: string) {
-  const trimmed = raw.trim();
-  try {
-    const url = new URL(
-      trimmed,
-      typeof window !== "undefined" ? window.location.origin : "https://hamalati.dz",
-    );
-    const fromQuery = url.searchParams.get("campaign");
-    if (fromQuery) return fromQuery.trim().toUpperCase();
-  } catch {
-    // Not a URL — treat the input as a plain campaign code.
-  }
-  return trimmed.toUpperCase();
-}
-
 const statusTone = (status: Campaign["status"]) =>
   status === "active" ? "mint" : status === "completed" ? "forest" : "amber";
 
 /** Scans (or accepts manual entry of) the single QR code of a campaign site. */
 export default function QRScanner() {
-  const { t, lang, campaigns, findCampaign, closeModal, openModal } = useApp();
+  const {
+    t,
+    lang,
+    campaigns,
+    trees,
+    findCampaign,
+    findTree,
+    closeModal,
+    openModal,
+  } = useApp();
   const [code, setCode] = useState("");
   const [error, setError] = useState("");
   const [recent, setRecent] = useState<string[]>([]);
@@ -60,31 +54,42 @@ export default function QRScanner() {
 
   const openSite = useCallback(
     (raw: string) => {
-      const normalized = campaignCodeOf(raw);
-      if (!normalized) {
-        setError(t("أدخل رمز الحملة أولاً.", "Enter a campaign code first."));
+      const code = qrCodeFromValue(raw);
+      if (!code) {
+        setError(t("أدخل رمز الموقع أو الشجرة أولاً.", "Enter a site or tree code first."));
         return false;
       }
+      const upper = code.toUpperCase();
+
       const campaign =
-        findCampaign(normalized) ??
-        campaigns.find((c) => c.id.toUpperCase() === normalized);
-      if (!campaign) {
-        setError(
-          t(
-            "لم نجد موقعاً بهذا الرمز. تأكد من رمز الحملة ثم أعد المحاولة.",
-            "No site found with this code. Check the campaign code and try again.",
-          ),
+        findCampaign(code) ??
+        campaigns.find((c) => c.id.toUpperCase() === upper);
+      if (campaign) {
+        setRecent((prev) =>
+          [campaign.id, ...prev.filter((x) => x !== campaign.id)].slice(0, 3),
         );
-        return false;
+        setError("");
+        openModal({ type: "site", campaignId: campaign.id });
+        return true;
       }
-      setRecent((prev) =>
-        [campaign.id, ...prev.filter((x) => x !== campaign.id)].slice(0, 3),
+
+      const tree =
+        findTree(code) ?? trees.find((tr) => tr.id.toUpperCase() === upper);
+      if (tree) {
+        setError("");
+        openModal({ type: "passport", treeId: tree.id });
+        return true;
+      }
+
+      setError(
+        t(
+          "لم نجد موقعاً أو شجرة بهذا الرمز. تأكد من الرمز ثم أعد المحاولة.",
+          "No site or tree found with this code. Check the code and try again.",
+        ),
       );
-      setError("");
-      openModal({ type: "site", campaignId: campaign.id });
-      return true;
+      return false;
     },
-    [campaigns, findCampaign, openModal, t],
+    [campaigns, trees, findCampaign, findTree, openModal, t],
   );
 
   const stopCamera = useCallback(() => {
@@ -230,8 +235,8 @@ export default function QRScanner() {
       onClose={closeModal}
       title={t("مسح رمز موقع التشجير", "Scan a planting site QR")}
       subtitle={t(
-        "وجّه الكاميرا نحو رمز الحملة المطبوع في الموقع، أو أدخل رمزها يدوياً لفتح بطاقة الموقع.",
-        "Point the camera at the campaign sign, or enter its code manually to open the site card.",
+        "وجّه الكاميرا نحو رمز الحملة أو الشجرة، أو الصق رابط QR لفتح بطاقة التفاصيل مباشرة.",
+        "Point the camera at a campaign or tree code, or paste a QR link to open its details.",
       )}
       icon={<ScanLine className="size-5" />}
       size="md"
@@ -328,7 +333,7 @@ export default function QRScanner() {
             htmlFor="campaign-code"
             className="mb-1.5 flex items-center justify-between text-[11px] font-semibold text-charcoal/65"
           >
-            <span>{t("رمز الحملة", "Campaign code")}</span>
+            <span>{t("رمز الموقع أو الشجرة", "Site or tree code")}</span>
             <span className="text-[9px] font-medium text-charcoal/35">
               {t("أو الصق رابط الرمز", "or paste the QR link")}
             </span>

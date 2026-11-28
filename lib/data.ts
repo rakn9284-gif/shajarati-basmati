@@ -3,6 +3,7 @@ import type {
   AppUser,
   Campaign,
   Post,
+  Role,
   Tree,
   TreeStatus,
 } from "./types";
@@ -48,7 +49,20 @@ export const getSpecies = (ar: string, en: string): SpeciesMeta => {
 export const ADMIN_EMAIL = "admin@skikda.dz";
 export const ADMIN_PASSWORD = "Admin@Skikda2026";
 
+/** `state_admin` is kept as the legacy label for the wilaya-level super admin. */
+export const isSuperAdminRole = (role?: Role | null) =>
+  role === "super_admin" || role === "state_admin";
+
+export const isPrivilegedRole = (role?: Role | null) =>
+  isSuperAdminRole(role) || role === "municipality_admin";
+
 export const ROLE_META = {
+  super_admin: {
+    ar: "أدمن عام",
+    en: "Super Admin",
+    color: "#123B2A",
+    bg: "#E4F4EA",
+  },
   state_admin: {
     ar: "أدمن الولاية",
     en: "State Admin",

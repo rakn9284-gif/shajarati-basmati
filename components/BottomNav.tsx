@@ -62,8 +62,8 @@ export default function BottomNav() {
           );
         })}
 
-        {/* زر المسح العائم في المنتصف */}
-        <div className="relative flex flex-col items-center">
+        {/* زر المسح العائم في المنتصف — أيقونة فقط بدون نص */}
+        <div className="relative flex items-center justify-center">
           <Link
             href="/scan"
             aria-label="مسح كو آر"
@@ -74,9 +74,6 @@ export default function BottomNav() {
           >
             <QrCode className="size-7" strokeWidth={2} />
           </Link>
-          <span className="-mt-5 text-[11px] font-bold leading-tight text-emerald-950">
-            مسح كو آر
-          </span>
         </div>
 
         {LINKS.slice(2).map((item) => {
